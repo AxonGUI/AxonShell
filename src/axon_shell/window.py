@@ -199,6 +199,14 @@ class AxonShellWindow(AxonGUI):
             self._schedule_state()
         super().changeEvent(event)
 
+    def moveEvent(self, event) -> None:  # noqa: N802 - Qt 命名
+        super().moveEvent(event)
+        self._schedule_state()
+
+    def resizeEvent(self, event) -> None:  # noqa: N802 - Qt 命名
+        super().resizeEvent(event)
+        self._schedule_state()
+
     def _emit_menu_selected(self, request_id: str, item_id: Optional[str]):
         try:
             AxonEvent.dispatch_js_event(
