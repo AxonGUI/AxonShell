@@ -22,6 +22,8 @@
 
 这三样都在这一个包里，业务代码里不必再出现一行 Qt。
 
+<p align="center"><img src="assets/screenshot.png" alt="axon-shell：文件浏览器示例" width="880"></p>
+
 ## 安装
 
 ```bash

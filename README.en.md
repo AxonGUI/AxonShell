@@ -22,6 +22,8 @@ An `AxonGUI` window is a **normal system window**: OS title bar, OS buttons, OS 
 
 All three live here. Your app code contains no Qt.
 
+<p align="center"><img src="assets/screenshot.png" alt="axon-shell: the file browser example" width="880"></p>
+
 ## Install
 
 ```bash
