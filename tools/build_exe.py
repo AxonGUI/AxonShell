@@ -11,6 +11,7 @@ PyInstaller 不能交叉编译：要 Windows 的 exe 就在 Windows 上跑这个
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import shutil
 import subprocess
 import sys
@@ -33,6 +34,19 @@ def find_bundle() -> Path:
     raise SystemExit("找不到 axon.umd.cjs：先在 examples/files 里 `npm install axon-gui@1.0.0`")
 
 
+def import_roots() -> list[Path]:
+    """可编辑安装（pip install -e）时 PyInstaller 找不到包，把它们的父目录加进 --paths。"""
+    roots: list[Path] = [ROOT / "src"]
+    for name in ("axon", "axon_shell"):
+        spec = importlib.util.find_spec(name)
+        locations = getattr(spec, "submodule_search_locations", None) if spec else None
+        if locations:
+            parent = Path(next(iter(locations))).resolve().parent
+            if parent not in roots:
+                roots.append(parent)
+    return roots
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="打包 examples/files")
     parser.add_argument("--name", default="AxonFiles")
@@ -47,13 +61,16 @@ def main(argv: list[str] | None = None) -> int:
         sys.executable, "-m", "PyInstaller",
         "--noconfirm", "--onedir", "--windowed",
         "--name", args.name,
-        "--paths", str(ROOT / "src"),
+    ]
+    for root in import_roots():
+        cmd += ["--paths", str(root)]
+    cmd += [
         "--add-data", f"{DEMO / 'web'}{SEP}web",
         "--add-data", f"{DEMO / 'workspace'}{SEP}workspace",
         "--add-data", f"{bundle}{SEP}vendor",
         "--add-data", f"{ROOT / 'assets' / 'axon-mark.svg'}{SEP}brand.svg",
-        "--add-data", f"{assets / 'shell.css'}{SEP}axon-shell",
-        "--add-data", f"{assets / 'shell.js'}{SEP}axon-shell",
+        # 皮肤随包走，assets_dir() 在冻结后也能指到
+        "--collect-data", "axon_shell",
     ]
     if icon.is_file():
         cmd += ["--icon", str(icon)]

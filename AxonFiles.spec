@@ -1,11 +1,15 @@
 # -*- mode: python ; coding: utf-8 -*-
+from PyInstaller.utils.hooks import collect_data_files
+
+datas = [('/workspace/AxonShell/examples/files/web', 'web'), ('/workspace/AxonShell/examples/files/workspace', 'workspace'), ('/workspace/AxonShell/examples/files/vendor/axon.umd.cjs', 'vendor'), ('/workspace/AxonShell/assets/axon-mark.svg', 'brand.svg')]
+datas += collect_data_files('axon_shell')
 
 
 a = Analysis(
     ['/workspace/AxonShell/examples/files/main.py'],
-    pathex=['/workspace/AxonShell/src'],
+    pathex=['/workspace/AxonShell/src', '/workspace/Axon/core-py'],
     binaries=[],
-    datas=[('/workspace/AxonShell/examples/files/web', 'web'), ('/workspace/AxonShell/examples/files/workspace', 'workspace'), ('/workspace/AxonShell/examples/files/vendor/axon.umd.cjs', 'vendor'), ('/workspace/AxonShell/assets/axon-mark.svg', 'brand.svg'), ('/workspace/AxonShell/src/axon_shell/assets/shell.css', 'axon-shell'), ('/workspace/AxonShell/src/axon_shell/assets/shell.js', 'axon-shell')],
+    datas=datas,
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
