@@ -37,6 +37,8 @@
 
 就是一个文件浏览器：左侧目录树、标签页、行号、编辑保存、输出面板、右键菜单、顶部原生菜单。窗口的每一处外观都来自这个包，业务代码只有几百行。
 
+<p align="center"><img src="assets/screenshot-windows.png" alt="在 Windows 上运行" width="880"></p>
+
 ---
 
 # 1) 先装框架本体（release 里的 wheel，自带 PySide6 依赖）
