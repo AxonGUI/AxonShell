@@ -14,14 +14,31 @@ from __future__ import annotations
 
 import argparse
 import os
+import shutil
 import sys
 import threading
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parent
+# PyInstaller 会把数据解到 _MEIPASS；直接跑脚本时就是本目录。
+FROZEN = bool(getattr(sys, "frozen", False))
+BASE_DIR = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent))
 WEB_DIR = BASE_DIR / "web"
-WORKSPACE = Path(os.environ.get("AXON_FILES_WORKSPACE") or BASE_DIR / "workspace").resolve()
+BRAND_FILE = BASE_DIR / "brand.svg" if FROZEN else BASE_DIR.parent.parent / "assets" / "axon-mark.svg"
+
+
+def _default_workspace() -> Path:
+    """冻结后不能写进解包目录（重启就没了），所以示例文件复制到用户目录。"""
+    if not FROZEN:
+        return BASE_DIR / "workspace"
+    root = Path(os.environ.get("LOCALAPPDATA") or Path.home()) / "axon-shell-demo"
+    target = root / "workspace"
+    if not target.exists():
+        shutil.copytree(BASE_DIR / "workspace", target)
+    return target
+
+
+WORKSPACE = Path(os.environ.get("AXON_FILES_WORKSPACE") or _default_workspace()).resolve()
 
 WEB_NAME = "FilesDemo"
 
@@ -39,6 +56,7 @@ def find_axon_bundle() -> Path:
     """优先用已安装的 axon-gui 的 dist，其次找本仓库构建出来的那份。"""
     candidates = [
         BASE_DIR / "vendor" / "axon.umd.cjs",
+        BASE_DIR / "vendor-axon" / "axon.umd.cjs",
         BASE_DIR / "node_modules" / "axon-gui" / "dist" / "axon.umd.cjs",
         Path.cwd() / "node_modules" / "axon-gui" / "dist" / "axon.umd.cjs",
         BASE_DIR.parent.parent / "core-js" / "dist" / "axon.umd.cjs",
@@ -73,7 +91,7 @@ class Handler(SimpleHTTPRequestHandler):
         if path in ("/vendor/axon.umd.cjs", "/vendor/axon.js"):
             return self._send_file(self.bundle, "text/javascript; charset=utf-8")
         if path == "/brand.svg":
-            return self._send_file(BASE_DIR.parent.parent / "assets" / "axon-mark.svg", "image/svg+xml")
+            return self._send_file(BRAND_FILE, "image/svg+xml")
         if path.startswith("/axon-shell/"):
             name = path.rsplit("/", 1)[-1]
             if name in ("shell.css", "shell.js"):

@@ -6,3 +6,7 @@ build/
 node_modules/
 examples/files/vendor/
 examples/files/verify_report.json
+
+# PyInstaller
+build/
+dist/

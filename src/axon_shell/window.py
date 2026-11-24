@@ -21,9 +21,8 @@ from pathlib import Path
 from typing import Any, Iterable, Optional, Sequence, TypedDict
 
 from PySide6.QtCore import QEvent, QObject, QPoint, Qt, QTimer, Slot
-from PySide6.QtGui import QAction, QActionGroup, QCursor, QKeySequence
-from PySide6.QtWidgets import QMenu
-
+from PySide6.QtGui import QAction, QActionGroup, QCursor, QIcon, QKeySequence
+from PySide6.QtWidgets import QMenu, QApplication
 
 from axon import AxonController, AxonEvent, AxonGUI, AxonMagicGUI
 
@@ -118,10 +117,19 @@ class AxonShellWindow(AxonGUI):
         self.setWindowTitle(title)
         self.setMinimumSize(*min_size)
         self.resize(*size)
+        self._apply_icon(QApplication.instance())
 
         self.window_bridge = WindowBridge(self)
         AxonController.register(self.window_bridge, web_name=web_name, id="Window")
         self.loadFinished.connect(lambda _ok: self._emit_state())
+
+    @staticmethod
+    def _apply_icon(app: Optional[QApplication]) -> None:
+        """没图标就补一个（宿主已经设过就不覆盖）。"""
+        icon_file = Path(assets_dir()) / "icon-256.png"
+        if app is None or not icon_file.is_file() or not app.windowIcon().isNull():
+            return
+        app.setWindowIcon(QIcon(str(icon_file)))
 
     # ------------------------------------------------------------------ 平台/状态
     @property
