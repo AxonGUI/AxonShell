@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import Any, Iterable, Optional, Sequence, TypedDict
 
 from PySide6.QtCore import QEvent, QObject, QPoint, Qt, QTimer, Slot
-from PySide6.QtGui import QAction, QActionGroup, QCursor, QIcon, QKeySequence
+from PySide6.QtGui import QAction, QActionGroup, QCursor, QGuiApplication, QIcon, QKeySequence
 from PySide6.QtWidgets import QMenu, QApplication
 
 from axon import AxonController, AxonEvent, AxonGUI, AxonMagicGUI
@@ -116,12 +116,27 @@ class AxonShellWindow(AxonGUI):
         self.setWindowFlag(Qt.WindowType.FramelessWindowHint, True)
         self.setWindowTitle(title)
         self.setMinimumSize(*min_size)
-        self.resize(*size)
+        self._fit_to_screen(size)
         self._apply_icon(QApplication.instance())
 
         self.window_bridge = WindowBridge(self)
         AxonController.register(self.window_bridge, web_name=web_name, id="Window")
         self.loadFinished.connect(lambda _ok: self._emit_state())
+
+    def _fit_to_screen(self, desired: tuple[int, int]) -> None:
+        """窗口别大过屏幕：按可用区域收 94%，然后居中。"""
+        screen = QGuiApplication.primaryScreen()
+        available = screen.availableGeometry() if screen else None
+        width, height = desired
+        if available is not None:
+            width = min(width, int(available.width() * 0.94))
+            height = min(height, int(available.height() * 0.94))
+        self.resize(width, height)
+        if available is not None:
+            self.move(
+                available.x() + (available.width() - width) // 2,
+                available.y() + (available.height() - height) // 2,
+            )
 
     @staticmethod
     def _apply_icon(app: Optional[QApplication]) -> None:

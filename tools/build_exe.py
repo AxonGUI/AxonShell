@@ -68,7 +68,7 @@ def main(argv: list[str] | None = None) -> int:
         "--add-data", f"{DEMO / 'web'}{SEP}web",
         "--add-data", f"{DEMO / 'workspace'}{SEP}workspace",
         "--add-data", f"{bundle}{SEP}vendor",
-        "--add-data", f"{ROOT / 'assets' / 'axon-mark.svg'}{SEP}brand.svg",
+        "--add-data", f"{ROOT / 'assets' / 'axon-mark.svg'}{SEP}.",
         # 皮肤随包走，assets_dir() 在冻结后也能指到
         "--collect-data", "axon_shell",
     ]

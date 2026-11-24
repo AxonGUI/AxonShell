@@ -24,7 +24,7 @@ from pathlib import Path
 FROZEN = bool(getattr(sys, "frozen", False))
 BASE_DIR = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent))
 WEB_DIR = BASE_DIR / "web"
-BRAND_FILE = BASE_DIR / "brand.svg" if FROZEN else BASE_DIR.parent.parent / "assets" / "axon-mark.svg"
+BRAND_FILE = (BASE_DIR / "axon-mark.svg") if FROZEN else BASE_DIR.parent.parent / "assets" / "axon-mark.svg"
 
 
 def _default_workspace() -> Path:
