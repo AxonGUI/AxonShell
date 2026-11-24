@@ -26,15 +26,11 @@ Everything else is frontend work. So this package is small on purpose: you can a
 
 ## Install
 
-Neither `axon-gui` nor `axon-shell` is on PyPI yet (once it is, it is two `pip install` lines):
-
 ```bash
-# 1) the framework: wheel from the release (brings PySide6)
-pip install "https://github.com/AxonGUI/Axon/releases/download/v5.3.4/axon_gui-5.3.4-py3-none-any.whl"
-
-# 2) the shell. --no-deps: axon-gui is not on PyPI, dependency resolution would 404
-pip install --no-deps "git+https://github.com/AxonGUI/AxonShell.git"
+pip install axon-shell      # pulls axon-gui>=5.3.4 and PySide6
 ```
+
+Versions: `axon-shell` 0.2.1, `axon-gui` 5.3.4. If `python -c "import axon, axon_shell"` is quiet, you are set.
 
 ## Thirty seconds
 
