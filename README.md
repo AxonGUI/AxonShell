@@ -26,13 +26,19 @@
 
 ## 安装
 
+`axon-gui` 和 `axon-shell` 都还没上 PyPI（上架后就是两条 `pip install`）。现在这样装：
+
 ```bash
-pip install axon-shell          # PyPI 上架后
-# 现在还没上 PyPI 时，从 GitHub 装：
-pip install "git+https://github.com/AxonGUI/AxonShell.git"
+# 1) 先装框架本体（release 里的 wheel，自带 PySide6 依赖）
+pip install "https://github.com/AxonGUI/Axon/releases/download/v5.3.4/axon_gui-5.3.4-py3-none-any.whl"
+
+# 2) 再装外观层。--no-deps 是因为 PyPI 上还没有 axon-gui，
+#    让它自己去解析依赖会 404；框架本体上一步已经装好了。
+pip install --no-deps "git+https://github.com/AxonGUI/AxonShell.git"
 ```
 
-它依赖 `axon-gui`（会自动带上 PySide6）。
+装完 `python -c "import axon, axon_shell"` 不报错就对了。`axon-shell` 只依赖 `axon-gui>=5.3.4`，
+不会额外装 Qt——Qt 是 `axon-gui` 带的。
 
 ## 三十秒接上
 
