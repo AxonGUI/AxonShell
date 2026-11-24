@@ -1,5 +1,5 @@
 {
-  "when": "2026-11-24 06:44:29",
+  "when": "2026-11-24 06:53:20",
   "results": [
     {
       "name": "boot/connected",
@@ -77,5 +77,5 @@
       "detail": "{\"id\":\"na\",\"requestId\":\"menu-1\"}"
     }
   ],
-  "workspace": "/tmp/axon-shell-verify-fovsn4bp"
+  "workspace": "/tmp/axon-shell-verify-n8op0fpb"
 }

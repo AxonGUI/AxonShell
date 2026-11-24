@@ -39,6 +39,7 @@ def find_axon_bundle() -> Path:
     """优先用已安装的 axon-gui 的 dist，其次找本仓库构建出来的那份。"""
     candidates = [
         BASE_DIR / "vendor" / "axon.umd.cjs",
+        BASE_DIR / "node_modules" / "axon-gui" / "dist" / "axon.umd.cjs",
         Path.cwd() / "node_modules" / "axon-gui" / "dist" / "axon.umd.cjs",
         BASE_DIR.parent.parent / "core-js" / "dist" / "axon.umd.cjs",
     ]
