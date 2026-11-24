@@ -406,8 +406,16 @@ class WindowBridge(QObject):
 
     # ---------------------------------------------------------------- 拖动/缩放
     @Slot("QVariantList")
-    def setDragRegions(self, regions):  # noqa: N802
-        data = [dict(r) for r in (regions or [])]
+    def setDragRegions(self, *regions):  # noqa: N802
+        """网页上报可拖拽区域。
+
+        两种写法都收：`setDragRegions([{...}, {...}])`（一个数组参数）与
+        `setDragRegions({...}, {...})`（摊开）。前者在旧版 axon-gui 上会被
+        当成打包写法展开，所以这里两种形状都要能接。
+        """
+        if len(regions) == 1 and isinstance(regions[0], (list, tuple)):
+            regions = tuple(regions[0])
+        data = [dict(r) for r in regions if isinstance(r, dict)]
         self._gui(lambda: self._window.set_drag_regions(data))
 
     @Slot(result=bool)

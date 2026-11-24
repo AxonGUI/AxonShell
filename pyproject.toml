@@ -25,6 +25,7 @@ Homepage = "https://github.com/AxonGUI/AxonShell"
 Issues = "https://github.com/AxonGUI/AxonShell/issues"
 
 [tool.setuptools]
+package-dir = { "" = "src" }
 packages = ["axon_shell"]
 
 [tool.setuptools.package-data]
