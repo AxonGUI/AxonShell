@@ -1,10 +1,10 @@
-"""把 examples/files 打包成可双击的程序（onedir，不是 onefile）。
+"""把 examples/basic 打包成可双击的程序（onedir，不是 onefile）。
 
 onefile 每次启动都要把 200MB+ 解到临时目录，冷启动很慢；onedir 解压一次就完事。
 PyInstaller 不能交叉编译：要 Windows 的 exe 就在 Windows 上跑这个脚本，
 或者用仓库里的 `.github/workflows/windows-exe.yml`。
 
-    python tools/build_exe.py                 # 产物在 dist/AxonFiles/
+    python tools/build_exe.py                 # 产物在 dist/AxonShellDemo/
     python tools/build_exe.py --clean         # 先删旧产物
 """
 
@@ -18,7 +18,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-DEMO = ROOT / "examples" / "files"
+DEMO = ROOT / "examples" / "basic"
 SEP = ";" if sys.platform == "win32" else ":"
 
 
@@ -31,7 +31,7 @@ def find_bundle() -> Path:
     for candidate in candidates:
         if candidate.is_file():
             return candidate
-    raise SystemExit("找不到 axon.umd.cjs：先在 examples/files 里 `npm install axon-gui@1.0.0`")
+    raise SystemExit("找不到 axon.umd.cjs：先在 examples/basic 里 `npm install axon-gui@1.0.0`")
 
 
 def import_roots() -> list[Path]:
@@ -48,8 +48,8 @@ def import_roots() -> list[Path]:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="打包 examples/files")
-    parser.add_argument("--name", default="AxonFiles")
+    parser = argparse.ArgumentParser(description="打包 examples/basic")
+    parser.add_argument("--name", default="AxonShellDemo")
     parser.add_argument("--clean", action="store_true")
     args = parser.parse_args(argv)
 
@@ -66,7 +66,6 @@ def main(argv: list[str] | None = None) -> int:
         cmd += ["--paths", str(root)]
     cmd += [
         "--add-data", f"{DEMO / 'web'}{SEP}web",
-        "--add-data", f"{DEMO / 'workspace'}{SEP}workspace",
         "--add-data", f"{bundle}{SEP}vendor",
         "--add-data", f"{ROOT / 'assets' / 'axon-mark.svg'}{SEP}.",
         # 皮肤随包走，assets_dir() 在冻结后也能指到

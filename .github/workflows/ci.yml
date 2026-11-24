@@ -27,7 +27,7 @@ jobs:
       - name: node --check
         run: |
           node --check src/axon_shell/assets/shell.js
-          node --check examples/files/web/app.js
+          node --check examples/basic/web/app.js
 
   smoke:
     name: 无头自检
@@ -53,12 +53,12 @@ jobs:
           python -m pip install "$AXON_WHEEL"
           python -m pip install -e .
       - name: 取 axon 前端产物
-        working-directory: examples/files
+        working-directory: examples/basic
         run: |
           npm install axon-gui@1.0.0 --no-save
           test -f node_modules/axon-gui/dist/axon.umd.cjs
       - name: 窗口自检
-        working-directory: examples/files
+        working-directory: examples/basic
         run: python main.py --smoke
       - name: 端到端自检
         run: python tests/verify.py

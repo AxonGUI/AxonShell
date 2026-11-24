@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>axon-shell 最小示例</title>
+    <link rel="icon" href="/brand.svg" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <!-- 这一条就是整个「外壳」：标了 data-axon-drag 就可以拖窗口 -->
+    <header class="bar" data-axon-drag>
+      <img class="brand" src="/brand.svg" alt="" data-axon-no-drag />
+      <span class="title">axon-shell 最小示例</span>
+      <span class="spacer"></span>
+
+      <!-- 按钮怎么画是你的事；只要写 data-axon-window 就会被接上 -->
+      <div class="win-controls" data-axon-no-drag>
+        <button class="wbtn" data-axon-window="min" title="最小化">
+          <svg viewBox="0 0 16 16"><path d="M4 8.5h8" /></svg>
+        </button>
+        <button class="wbtn" data-axon-window="max" title="最大化">
+          <svg viewBox="0 0 16 16"><rect x="4" y="4" width="8" height="8" rx="1" /></svg>
+        </button>
+        <button class="wbtn wbtn--close" data-axon-window="close" title="关闭">
+          <svg viewBox="0 0 16 16"><path d="M5 5l6 6M11 5l-6 6" /></svg>
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <h1>框架只做这些</h1>
+      <ul>
+        <li>无边框窗口 + 图标 + 初始尺寸不超屏</li>
+        <li>把标了 <code>data-axon-drag</code> 的区域变成系统原生的拖动区（Windows 上还能双击最大化、右键系统菜单）</li>
+        <li>最小化 / 最大化 / 还原 / 关闭 / 置顶 / 改尺寸</li>
+        <li>窗口状态事件、原生菜单桥；Linux 上补拖动与缩放的兜底</li>
+      </ul>
+      <p class="dim">标题栏、菜单、工具栏、主题……这些都在你自己手里，这个包里一行都没有。</p>
+
+      <div class="panel">
+        <div class="row">
+          <button id="btnEcho">调一次 Python</button>
+          <span id="echoOut" class="out">—</span>
+        </div>
+        <div class="row">
+          <button id="btnAbout">看看环境</button>
+          <span id="aboutOut" class="out">—</span>
+        </div>
+        <div class="row">
+          <button id="btnNative">弹一个 Qt 原生菜单</button>
+          <span id="nativeOut" class="out">—</span>
+        </div>
+      </div>
+
+      <pre id="state" class="state"></pre>
+    </main>
+
+    <script src="/vendor/axon.umd.cjs"></script>
+    <script src="/axon-shell/shell.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>

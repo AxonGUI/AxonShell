@@ -1,6 +1,0 @@
-{
-  "theme": "dark",
-  "fontSize": 13,
-  "sidebar": { "width": 250, "visible": true },
-  "panel": { "height": 148, "visible": true }
-}

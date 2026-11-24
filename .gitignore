@@ -4,8 +4,9 @@ __pycache__/
 dist/
 build/
 node_modules/
-examples/files/vendor/
-examples/files/verify_report.json
+*.egg-info/
+examples/basic/vendor/
+tests/verify_report.json
 
 # PyInstaller
 build/

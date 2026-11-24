@@ -34,7 +34,7 @@ __all__ = ["AxonShellWindow", "AxonWindow", "WindowBridge", "assets_dir"]
 
 
 def assets_dir() -> str:
-    """前端皮肤（shell.css / shell.js）所在目录，用静态服务挂出去即可。"""
+    """前端资源目录（`shell.js` 与图标），用静态服务挂出去即可。"""
     return str(Path(__file__).resolve().parent / "assets")
 
 # Win32 WM_NCHITTEST 的返回值
@@ -478,8 +478,11 @@ class WindowBridge(QObject):
 
     # ---------------------------------------------------------------- 菜单
     @Slot("QVariantMap", result="QString")
-    def popupMenu(self, spec):  # noqa: N802
-        """弹出原生菜单，不阻塞；选中项通过 `window:menu` 事件回来。"""
+    def popupMenu(self, spec, x=None, y=None):  # noqa: N802
+        """弹出原生菜单，不阻塞；选中项通过 `window:menu` 事件回来。
+
+        x / y 是相对窗口左上角的坐标，省略时用鼠标位置。
+        """
         payload: MenuSpec = dict(spec or {})
         self._window._menu_seq += 1
         request_id = f"menu-{self._window._menu_seq}"
@@ -495,7 +498,11 @@ class WindowBridge(QObject):
             self._window._last_menu = menu
             if payload.get("title"):
                 menu.setTitle(str(payload["title"]))
-            menu.popup(QCursor.pos())
+            if isinstance(x, (int, float)) and isinstance(y, (int, float)):
+                anchor = self._window.mapToGlobal(QPoint(int(x), int(y)))
+            else:
+                anchor = QCursor.pos()
+            menu.popup(anchor)
 
         AxonMagicGUI.run(show)
         return request_id

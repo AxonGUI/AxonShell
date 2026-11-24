@@ -4,60 +4,45 @@
 
 # axon-shell
 
-给 [Axon](https://github.com/AxonGUI/Axon) 应用加一层「桌面软件该有的样子」：无边框窗口、自定义标题栏、菜单条、窗口按钮、网页右键菜单，以及 Windows 上的原生命中测试（拖动、双击最大化、贴靠、四边缩放都由系统完成）。
+给 [Axon](https://github.com/AxonGUI/Axon) 应用补上**网页做不了的那一层**：无边框窗口、可拖动的区域、窗口按钮的原生行为、窗口状态事件、原生菜单桥。
 
-它不是框架核心。通道、控制器、事件、Store 全在 `axon-gui` 里；这个包只做外观，装不上也不影响核心。
+这个包**不含任何界面**——没有标题栏、没有菜单条、没有按钮样式、没有主题、没有一行 CSS。标题栏长什么样、菜单怎么排、按钮用什么图标，全是你自己在页面里写的；它只负责让这些东西真的能拖动、能最小化、能关掉。
 
 <sub>简体中文 · [English](README.en.md)</sub>
 
 ---
 
-## 它解决什么问题
+## 为什么需要它
 
-`AxonGUI` 默认是**系统原生窗口**：标题栏、按钮、边框都是操作系统的样子。想把界面做成 VSCode / Electron 那种「整块都是我的」风格，需要三样东西：
+浏览器里做不出下面三件事，这三件也只有它们需要 Python：
 
-1. 一个不画系统边框的窗口（`FramelessWindowHint`）——否则你画的标题栏下面还压着一条系统标题栏；
-2. 拖动、双击最大化、贴边、八向缩放**仍然可用**——Windows 上必须接管 `WM_NCHITTEST`，否则窗口拖不动、也没有贴靠；
-3. 一套前端皮肤：标题栏、菜单、窗口按钮、右键菜单的样式与交互。
+1. **无边框窗口**：去掉系统标题栏（`FramelessWindowHint`），整块界面归你；
+2. **拖动与缩放仍然有效**：Windows 上必须接管 `WM_NCHITTEST` 返回 `HTCAPTION`，系统才会给你真实的拖动、双击最大化、拖到边缘贴靠、四边缩放；Linux/macOS 上则退化成 `startSystemMove()` 与指针增量；
+3. **控制窗口**：最小化 / 最大化 / 还原 / 关闭 / 置顶 / 改尺寸，以及「窗口状态变了」的事件。
 
-这三样都在这一个包里，业务代码里不必再出现一行 Qt。
+其余全部是前端的事。所以这个包很小，也故意很小：你随时可以不用它，自己写 `Axon.Window` 的调用。
 
-<p align="center"><img src="assets/screenshot.png" alt="axon-shell：文件浏览器示例" width="880"></p>
+<p align="center"><img src="assets/screenshot.png" alt="示例：只有一条可拖动的顶栏和三个窗口按钮" width="760"></p>
 
 ## 安装
 
-`axon-gui` 和 `axon-shell` 都还没上 PyPI（上架后就是两条 `pip install`）。现在这样装：
+`axon-gui` 与 `axon-shell` 都还没上 PyPI（上架后是两条 `pip install`）。现在：
 
 ```bash
-## 想先看效果？
-
-不用装 Python：
-
-**[下载 Windows 免安装版](https://github.com/AxonGUI/AxonShell/releases/download/demo-0.1.1/AxonFiles-windows-x64.zip)**（232 MB，解压后双击 `AxonFiles/AxonFiles.exe`）
-
-就是一个文件浏览器：左侧目录树、标签页、行号、编辑保存、输出面板、右键菜单、顶部原生菜单。窗口的每一处外观都来自这个包，业务代码只有几百行。
-
-<p align="center"><img src="assets/screenshot-windows.png" alt="在 Windows 上运行" width="880"></p>
-
----
-
-# 1) 先装框架本体（release 里的 wheel，自带 PySide6 依赖）
+# 1) 框架本体：Release 里的 wheel（自带 PySide6）
 pip install "https://github.com/AxonGUI/Axon/releases/download/v5.3.4/axon_gui-5.3.4-py3-none-any.whl"
 
-# 2) 再装外观层。--no-deps 是因为 PyPI 上还没有 axon-gui，
-#    让它自己去解析依赖会 404；框架本体上一步已经装好了。
+# 2) 外观层。--no-deps：PyPI 上还没有 axon-gui，让 pip 自己解析会 404
 pip install --no-deps "git+https://github.com/AxonGUI/AxonShell.git"
 ```
 
-装完 `python -c "import axon, axon_shell"` 不报错就对了。`axon-shell` 只依赖 `axon-gui>=5.3.4`，
-不会额外装 Qt——Qt 是 `axon-gui` 带的。
+装完 `python -c "import axon, axon_shell"` 不报错就对了。
 
 ## 三十秒接上
 
-**Python 侧**——只换一个窗口类：
+**Python 侧**——只换窗口类：
 
 ```python
-# main.py
 import sys
 from PySide6.QtWidgets import QApplication
 from axon import AxonController, AxonMagicGUI
@@ -72,52 +57,45 @@ class App:
 
 def main() -> int:
     app = QApplication(sys.argv[:1])
-    AxonMagicGUI()                     # 主线程执行器，AxonShellWindow 内部会用到
+    AxonMagicGUI()                     # AxonShellWindow 内部要用
     window = AxonShellWindow(WEB, "http://127.0.0.1:8000/", title="我的应用")
     window.show()
     return app.exec()
 
-if __name__ == "__main__":
-    raise SystemExit(main())
+raise SystemExit(main())
 ```
 
-**页面侧**——先引皮肤，再 `mount`：
+**页面侧**——写自己的标题栏，标两个属性就活了：
 
 ```html
-<link rel="stylesheet" href="/axon-shell/shell.css" />
-<script src="/axon.umd.cjs"></script>       <!-- axon-gui 的 UMD 产物 -->
-<script src="/axon-shell/shell.js"></script>
-<script>
-  const { AxonInit } = window.axon;
+<script src="/axon.umd.cjs"></script>          <!-- axon-gui 的 UMD 产物 -->
+<script src="/axon-shell/shell.js"></script>   <!-- 这个包唯一的 JS 文件 -->
 
+<header data-axon-drag>                        <!-- 这块区域可以拖动窗口 -->
+  <span>我的应用</span>
+  <button data-axon-window="min">–</button>    <!-- 三个按钮的行为自动接上 -->
+  <button data-axon-window="max">□</button>
+  <button data-axon-window="close">×</button>
+</header>
+
+<script>
   (async () => {
-    const status = await AxonInit();
-    AxonShell.mount({
-      title: "我的应用",
-      brand: '<img src="/brand.svg" alt="" />',
-      menus: [
-        {
-          id: "file",
-          label: "文件",
-          items: [
-            { id: "new", label: "新建", shortcut: "Ctrl+N", run: () => console.log("新建") },
-            { kind: "separator" },
-            { id: "quit", label: "退出", run: () => Axon.Window.close() },
-          ],
-        },
-      ],
-    });
-    console.log(status.ready ? "已连上 Python" : "纯网页");
+    await window.axon.AxonInit();
+    window.AxonShell.init();                   // 接上拖拽区、按钮、状态事件
+    window.AxonShell.window.onState(s => console.log(s.frame));
   })();
 </script>
 ```
 
-`shell.css` 与 `shell.js` 从 `axon_shell` 包里取：
+`shell.js` 从包里取，静态服务挂到 `/axon-shell/` 即可：
 
 ```python
 from axon_shell import assets_dir
-print(assets_dir())   # 静态服务把它挂到 /axon-shell/ 即可
+print(assets_dir())   # .../axon_shell/assets
 ```
+
+> `data-axon-drag` 里面的按钮、输入框、链接会自动被排除在拖动区之外；
+> 不想被自动排除的，加 `data-axon-no-drag` 也可以反过来用。
 
 ## 它提供什么
 
@@ -125,70 +103,61 @@ print(assets_dir())   # 静态服务把它挂到 /axon-shell/ 即可
 
 | 名字 | 说明 |
 | --- | --- |
-| `AxonShellWindow(web_name, url, title=..., size=..., min_size=..., options=...)` | 继承 `AxonGUI`，去掉系统边框，注册 `Axon.Window` 控制器 |
-| `Axon.Window` 控制器 | `minimize / maximize / restore / toggleMaximize / toggleFullScreen / close / setAlwaysOnTop / setTitle / setDragRegions / beginSystemMove / moveTo / resizeTo / moveBy / frame / state / platform / popupMenu / closeMenu` |
-| 事件 `window:state` | 最大化、全屏、位置尺寸变化时推给前端 |
-| 事件 `window:menu` | 原生菜单被选中时回传 `{requestId, id}` |
-| `assets_dir()` | 皮肤资源目录（`shell.css` / `shell.js`） |
+| `AxonShellWindow(web_name, url, title=…, size=…, min_size=…, options=…)` | 继承 `AxonGUI`，去系统边框、设图标、初始尺寸不超出屏幕，注册 `Axon.Window` |
+| `Axon.Window`（控制器） | `minimize` `maximize` `restore` `toggleMaximize` `toggleFullScreen` `close` `setAlwaysOnTop` `setTitle` `setDragRegions` `beginSystemMove` `moveTo` `resizeTo` `moveBy` `frame` `state` `platform` `popupMenu` `closeMenu` |
+| 事件 `window:state` | 最大化 / 全屏 / 位置尺寸变化（60ms 合并后推一次） |
+| 事件 `window:menu` | 原生菜单被选中：`{requestId, id}` |
+| `assets_dir()` | `assets` 目录，里面只有 `shell.js`、图标 |
+
+`Axon.Window` 是从 `axon-gui` 的通道调进去的，所以页面里也能直接写
+`await Axon.Window.resizeTo(1200, 800)`，不必经过这个 JS 文件。
 
 ### 前端（`window.AxonShell`）
 
 | 名字 | 说明 |
 | --- | --- |
-| `mount({title, brand, menus, minSize, onCommand})` | 造标题栏与菜单条，接上窗口按钮、拖拽区、缩放 |
-| `menu(items, x, y)` / `contextMenu(x, y, items)` | 画一个弹出菜单；每项支持 `id/label/shortcut/kind/checked/disabled/items/run` |
-| `nativeMenu(spec)` / `onNativeMenu(cb)` | 让 Qt 弹原生菜单；选中后回调 `{requestId, id}` |
-| `setTheme("dark" \| "light")` / `toggleTheme()` / `theme` | 两套主题，存 `localStorage` |
-| `setTitle(text)` / `refreshFrame()` / `onState(cb)` | 改标题、读窗口矩形、监听状态 |
+| `init(opts?)` | 幂等安装：`data-axon-window` 点击、`[data-axon-drag]` 上报、状态/菜单事件订阅 |
+| `drag.refresh()` / `drag.regions()` | 重新计算拖动区（布局变了要调）；返回 `[{left,top,width,height}, …]` |
+| `window.state()` | `{platform, frame:{x,y,width,height}, maximized, fullScreen}` |
+| `window.minimize()` `toggleMaximize()` `close()` `setTitle()` `setAlwaysOnTop()` `refresh()` | 常用窗口操作 |
+| `window.onState(cb)` | 订阅窗口状态 |
+| `menu.native(spec)` / `menu.onSelect(cb)` | 让 Qt 弹原生菜单；`spec` 是 `{id?, title?, items:[…]}`，每项 `{id,label,shortcut?,kind?:separator/check/radio,checked?,disabled?,items?}` |
+| `enableFallback()` | 非 win32/darwin 上补拖动与 8 向缩放（`init()` 会自动开） |
 
-菜单项三种写法：
-
-```javascript
-// 1. 普通项：点一下就执行
-{ id: "save", label: "保存", shortcut: "Ctrl+S", run: () => save() }
-
-// 2. 勾选项：checked 可以是布尔值或函数（每次打开菜单时求值）
-{ id: "sidebar", label: "显示侧边栏", kind: "check", checked: () => sidebarVisible(), run: () => toggleSidebar() }
-
-// 3. 子菜单：递归 items
-{ id: "recent", label: "最近打开", items: [{ id: "a", label: "a.py", run: () => open("a.py") }] }
-```
+`init()` 之后 `<html>` 上会有 `data-axon-platform="win32|linux|darwin"` 与
+`data-axon-maximized="true|false"`，你在 CSS 里可以据此调布局（比如去掉圆角）。
 
 ## 各平台怎么动窗口
 
-- **Windows**：Python 侧接管 `WM_NCHITTEST`。标题栏（减去 `[data-axon-no-drag]` 的部分）返回 `HTCAPTION`，四边六像素返回 `HTLEFT/...`，于是拖动、双击最大化、拖到屏幕边缘贴靠、四边缩放全是系统行为，没有 JS 手搓的延迟与抖动。
-- **Linux / macOS**：优先 `startSystemMove()`（X11 与 macOS 支持）；不支持时退化成 JS 指针增量 + `moveTo/resizeTo`，八向缩放由 `.axs-resize-handle` 负责。
+- **Windows**：Python 接管 `WM_NCHITTEST`——上报的拖动区返回 `HTCAPTION`，边框 6px 返回 `HTLEFT/HTRIGHT/HTTOP/...`。拖动、双击最大化、贴边、四边缩放全是系统行为，没有 JS 手搓的延迟。
+- **Linux / macOS**：`startSystemMove()`（X11/macOS 支持）；不支持时 `shell.js` 用指针增量 + `moveTo/resizeTo` 兜底，8 向缩放靠 8 条透明热区。
 
-网页只要保证「哪些区域可以拖」标注清楚：
-
-```html
-<header data-axon-drag>
-  <nav data-axon-no-drag>   <!-- 按钮、菜单这些不能被当成拖拽区 -->
-    <button>文件</button>
-  </nav>
-</header>
-```
+所以拖动区只要「标出来」就行，不用写 `-webkit-app-region`（Qt 也不认这个）。
 
 ## 示例
 
-`examples/files/` 是一个文件浏览器：左侧树、标签页、行号、编辑保存、输出面板、右键菜单、原生菜单。窗口外观全部来自这个包，业务代码只有几百行。
+`examples/basic/` 是一个最小应用：一条可拖动的顶栏、三个窗口按钮、三行演示按钮。
 
 ```bash
-cd examples/files
-python main.py            # 或 python main.py --workspace /tmp/demo
-python main.py --smoke    # 无头自检（不需要显示器）
-python ../../tests/verify.py   # 端到端自检：窗口、菜单、右键、编辑、保存
+cd examples/basic
+python main.py                 # 需要先 npm install axon-gui（或设 AXON_BUNDLE 指到 axon.umd.cjs）
+python main.py --smoke         # 无头自检
+python ../../tests/verify.py   # 端到端：拖拽区、按钮、状态、缩放、Python 往返、原生菜单
 ```
+
+想看「照着这个自己写一整套 VSCode 外观」的完整例子，看
+[Axon 文档里的窗口外观页](https://axongui.github.io/Axon/guide/window-chrome)。
 
 ## 验证
 
 ```bash
-python examples/files/main.py --smoke     # 连通 + 外壳 + 文件树
-python tests/verify.py                    # 15 条端到端断言，退出码 = 失败数
+python examples/basic/main.py --smoke     # 连通 + 拖拽区 + 窗口
+python tests/verify.py                    # 11 条断言，退出码 = 失败数
 ```
 
 ## 版本
 
-`0.1.0` —— 外观层刚拆出来，接口还会动。它不承诺兼容 `axon-gui` 之外的东西。
+`0.2.0` —— 从「带皮肤」收缩成「只做原生那层」。之前的 0.1.x 包含标题栏/菜单/主题，
+现在都删了：那些东西你写得比我好。
 
 MIT © STofone
