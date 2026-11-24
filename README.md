@@ -12,6 +12,16 @@
 
 ---
 
+## 先看看效果
+
+打包好的最小示例（Windows 10/11 x64，免安装）：
+
+<https://github.com/AxonGUI/AxonShell/releases/download/demo-0.2.2/AxonShellDemo-windows-x64.zip>
+
+解压后双击 `AxonShellDemo/AxonShellDemo.exe`。里面就是一个 `data-axon-drag` 顶栏、三个窗口按钮和三个演示按钮——标题栏的全部样式都在 `examples/basic/web/style.css` 里，随便改。
+
+---
+
 ## 为什么需要它
 
 浏览器里做不出下面三件事，这三件也只有它们需要 Python：

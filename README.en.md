@@ -12,6 +12,16 @@ This package ships **no UI at all** — no title bar, no menu bar, no button sty
 
 ---
 
+## See it running
+
+The packaged minimal demo (Windows 10/11 x64, no install):
+
+<https://github.com/AxonGUI/AxonShell/releases/download/demo-0.2.2/AxonShellDemo-windows-x64.zip>
+
+Unzip and double-click `AxonShellDemo/AxonShellDemo.exe`. It is one `data-axon-drag` bar, three window buttons and three demo buttons — the whole title bar style lives in `examples/basic/web/style.css`; change it freely.
+
+---
+
 ## Why it exists
 
 Three things a browser cannot do, and they are exactly the three that need Python:
