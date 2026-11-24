@@ -29,6 +29,16 @@
 `axon-gui` 和 `axon-shell` 都还没上 PyPI（上架后就是两条 `pip install`）。现在这样装：
 
 ```bash
+## 想先看效果？
+
+不用装 Python：
+
+**[下载 Windows 免安装版](https://github.com/AxonGUI/AxonShell/releases/download/demo-0.1.1/AxonFiles-windows-x64.zip)**（232 MB，解压后双击 `AxonFiles/AxonFiles.exe`）
+
+就是一个文件浏览器：左侧目录树、标签页、行号、编辑保存、输出面板、右键菜单、顶部原生菜单。窗口的每一处外观都来自这个包，业务代码只有几百行。
+
+---
+
 # 1) 先装框架本体（release 里的 wheel，自带 PySide6 依赖）
 pip install "https://github.com/AxonGUI/Axon/releases/download/v5.3.4/axon_gui-5.3.4-py3-none-any.whl"
 
@@ -172,7 +182,7 @@ python ../../tests/verify.py   # 端到端自检：窗口、菜单、右键、�
 
 ```bash
 python examples/files/main.py --smoke     # 连通 + 外壳 + 文件树
-python tests/verify.py                    # 9 条端到端断言，退出码 = 失败数
+python tests/verify.py                    # 15 条端到端断言，退出码 = 失败数
 ```
 
 ## 版本
