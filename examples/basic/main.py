@@ -16,9 +16,10 @@ import sys
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-BASE_DIR = Path(getattr(sys, "frozen", Path(__file__).resolve().parent))
+FROZEN = bool(getattr(sys, "frozen", False))
+BASE_DIR = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent))
 WEB_DIR = BASE_DIR / "web"
-BRAND_FILE = (BASE_DIR / "axon-mark.svg") if getattr(sys, "frozen", False) else BASE_DIR.parent.parent / "assets" / "axon-mark.svg"
+BRAND_FILE = (BASE_DIR / "axon-mark.svg") if FROZEN else BASE_DIR.parent.parent / "assets" / "axon-mark.svg"
 
 WEB_NAME = "BasicDemo"
 
@@ -177,4 +178,19 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    # windowed 打包后没有控制台：异常如果直接冒出去，PyInstaller 会弹一个
+    # 模态错误框，进程就卡在那儿等点击（CI 里表现为「自检永远不结束」）。
+    try:
+        code = main()
+    except BaseException:  # noqa: BLE001 - 顶层兜底，保证进程一定退出
+        import traceback
+
+        traceback.print_exc()
+        try:
+            report = Path(os.environ.get("TEMP", os.environ.get("TMP", "."))) / "axon-shell-error.log"
+            report.write_text(traceback.format_exc(), encoding="utf-8")
+            print(f"[demo] 错误已写入 {report}", file=sys.stderr)
+        except Exception:
+            pass
+        code = 1
+    raise SystemExit(code)
