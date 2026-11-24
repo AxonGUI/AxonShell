@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "axon-shell"
+version = "0.1.0"
+description = "VSCode-style window chrome for Axon apps: frameless window, custom title bar, menus, context menus, resize handles."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [{ name = "STofone" }]
+keywords = ["axon", "axon-gui", "pyside6", "qt", "desktop", "vscode", "frameless-window", "titlebar"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Desktop Environment :: Window Managers",
+  "License :: OSI Approved :: MIT License",
+]
+dependencies = ["axon-gui>=5.3.4"]
+
+[project.urls]
+Repository = "https://github.com/AxonGUI/AxonShell"
+Homepage = "https://github.com/AxonGUI/AxonShell"
+Issues = "https://github.com/AxonGUI/AxonShell/issues"
+
+[tool.setuptools]
+packages = ["axon_shell"]
+
+[tool.setuptools.package-data]
+axon_shell = ["assets/*.css", "assets/*.js"]

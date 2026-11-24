@@ -1,0 +1,262 @@
+/* axon-shell 皮肤：标题栏 / 菜单 / 窗口按钮 / 右键菜单 / 缩放手柄
+ *
+ * 只负责「观感」，不认识你的业务。所有颜色都是 CSS 变量，
+ * 应用可以覆盖；两套主题挂在 <html data-axs-theme="dark|light"> 上。
+ */
+
+html {
+  --axs-titlebar-h: 36px;
+  --axs-radius: 8px;
+  --axs-font: "Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+}
+
+html[data-axs-theme="dark"] {
+  --axs-bg: #1e1e1e;
+  --axs-bg-2: #252526;
+  --axs-bg-3: #2d2d2d;
+  --axs-bg-4: #3a3d41;
+  --axs-fg: #cccccc;
+  --axs-fg-dim: #9d9d9d;
+  --axs-border: #333333;
+  --axs-accent: #3451b2;
+  --axs-cyan: #63c6e2;
+  --axs-shadow: 0 12px 28px rgba(0, 0, 0, 0.55);
+  --axs-hover: #2a2d2e;
+  --axs-close: #e5484d;
+}
+
+html[data-axs-theme="light"] {
+  --axs-bg: #ffffff;
+  --axs-bg-2: #f6f7f9;
+  --axs-bg-3: #eceef1;
+  --axs-bg-4: #e2e5ea;
+  --axs-fg: #24292f;
+  --axs-fg-dim: #6b7280;
+  --axs-border: #d9dde3;
+  --axs-accent: #3451b2;
+  --axs-cyan: #2e86c4;
+  --axs-shadow: 0 12px 28px rgba(15, 23, 42, 0.16);
+  --axs-hover: #eef1f5;
+  --axs-close: #d13438;
+}
+
+/* 有自定义标题栏时，把内容让出顶部那条 */
+html.axs-has-chrome body {
+  padding-top: var(--axs-titlebar-h);
+  margin: 0;
+}
+
+/* ── 标题栏 ─────────────────────────────────────────────── */
+.axs-chrome {
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: var(--axs-titlebar-h);
+  z-index: 60;
+  display: flex;
+  align-items: stretch;
+  background: var(--axs-bg-2);
+  border-bottom: 1px solid var(--axs-border);
+  user-select: none;
+  -webkit-user-select: none;
+  font-family: var(--axs-font);
+  color: var(--axs-fg);
+}
+
+.axs-brand {
+  display: flex;
+  align-items: center;
+  padding: 0 10px 0 12px;
+  gap: 8px;
+  color: var(--axs-fg);
+}
+
+.axs-brand svg,
+.axs-brand img {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
+.axs-menubar {
+  display: flex;
+  align-items: stretch;
+  -webkit-app-region: no-drag;
+}
+
+.axs-menubar__btn {
+  border: 0;
+  background: transparent;
+  color: var(--axs-fg);
+  font: inherit;
+  font-size: 12.5px;
+  padding: 0 10px;
+  cursor: default;
+}
+
+.axs-menubar__btn:hover,
+.axs-menubar__btn.is-open {
+  background: var(--axs-bg-3);
+}
+
+.axs-title {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: var(--axs-fg-dim);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  padding: 0 12px;
+  pointer-events: none;
+}
+
+.axs-wbtns {
+  display: flex;
+  align-items: stretch;
+}
+
+.axs-wbtn {
+  width: 46px;
+  border: 0;
+  background: transparent;
+  color: var(--axs-fg);
+  display: grid;
+  place-items: center;
+  cursor: default;
+}
+
+.axs-wbtn:hover {
+  background: var(--axs-bg-4);
+}
+
+.axs-wbtn--close:hover {
+  background: var(--axs-close);
+  color: #fff;
+}
+
+.axs-wbtn svg {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.4;
+}
+
+/* ── 弹出菜单 ───────────────────────────────────────────── */
+.axs-menu {
+  position: fixed;
+  z-index: 90;
+  min-width: 190px;
+  padding: 4px;
+  background: var(--axs-bg-3);
+  border: 1px solid var(--axs-border);
+  border-radius: var(--axs-radius);
+  box-shadow: var(--axs-shadow);
+  font-family: var(--axs-font);
+  font-size: 12.5px;
+  color: var(--axs-fg);
+}
+
+.axs-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 5px 10px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: default;
+}
+
+.axs-menu__item:hover:not(:disabled) {
+  background: var(--axs-accent);
+  color: #fff;
+}
+
+.axs-menu__item:disabled {
+  color: var(--axs-fg-dim);
+  opacity: 0.6;
+}
+
+.axs-menu__item .sc {
+  margin-left: auto;
+  color: var(--axs-fg-dim);
+  font-size: 11.5px;
+}
+
+.axs-menu__item:hover:not(:disabled) .sc {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.axs-menu__item[data-kind="check"]::before,
+.axs-menu__item[data-kind="radio"]::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  border: 1px solid var(--axs-fg-dim);
+  flex: 0 0 auto;
+}
+
+.axs-menu__item[data-kind="radio"]::before {
+  border-radius: 50%;
+}
+
+.axs-menu__item[data-checked="true"]::before {
+  background: var(--axs-accent);
+  border-color: var(--axs-accent);
+  box-shadow: inset 0 0 0 2px var(--axs-bg-3);
+}
+
+.axs-menu__item:hover[data-checked="true"]::before {
+  box-shadow: inset 0 0 0 2px var(--axs-accent);
+}
+
+.axs-menu__item .arrow {
+  margin-left: auto;
+  color: var(--axs-fg-dim);
+}
+
+.axs-menu__sep {
+  height: 1px;
+  margin: 4px 6px;
+  background: var(--axs-border);
+}
+
+/* ── 非 Windows 的手动缩放 ──────────────────────────────── */
+.axs-resize-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  pointer-events: none;
+}
+
+.axs-resize-handle {
+  position: absolute;
+  pointer-events: auto;
+}
+
+.axs-resize-handle[data-edge="top"] { top: 0; left: 8px; right: 8px; height: 5px; cursor: ns-resize; }
+.axs-resize-handle[data-edge="bottom"] { bottom: 0; left: 8px; right: 8px; height: 5px; cursor: ns-resize; }
+.axs-resize-handle[data-edge="left"] { left: 0; top: 8px; bottom: 8px; width: 5px; cursor: ew-resize; }
+.axs-resize-handle[data-edge="right"] { right: 0; top: 8px; bottom: 8px; width: 5px; cursor: ew-resize; }
+.axs-resize-handle[data-edge="top-left"] { top: 0; left: 0; width: 10px; height: 10px; cursor: nwse-resize; }
+.axs-resize-handle[data-edge="top-right"] { top: 0; right: 0; width: 10px; height: 10px; cursor: nesw-resize; }
+.axs-resize-handle[data-edge="bottom-left"] { bottom: 0; left: 0; width: 10px; height: 10px; cursor: nesw-resize; }
+.axs-resize-handle[data-edge="bottom-right"] { bottom: 0; right: 0; width: 10px; height: 10px; cursor: nwse-resize; }
+
+/* 网页自己画的拖拽区（Windows 上由 Python 侧做原生命中测试，这里只是标记） */
+[data-axon-drag] {
+  -webkit-app-region: drag;
+}
+
+[data-axon-no-drag],
+[data-axon-no-drag] * {
+  -webkit-app-region: no-drag;
+}

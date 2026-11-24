@@ -1,0 +1,81 @@
+{
+  "when": "2026-11-24 06:36:55",
+  "results": [
+    {
+      "name": "boot/connected",
+      "ok": true,
+      "detail": "platform=linux theme=light"
+    },
+    {
+      "name": "boot/chrome",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "boot/tree",
+      "ok": true,
+      "detail": "rows=3"
+    },
+    {
+      "name": "window/state",
+      "ok": true,
+      "detail": "1240x800 platform=linux"
+    },
+    {
+      "name": "window/drag_regions",
+      "ok": true,
+      "detail": "[{'x': 200.0, 'y': 0.0, 'w': 400.0, 'h': 36.0}]"
+    },
+    {
+      "name": "window/maximize",
+      "ok": true,
+      "detail": "maximized=True"
+    },
+    {
+      "name": "window/restore",
+      "ok": true,
+      "detail": "maximized=False"
+    },
+    {
+      "name": "window/resizeTo",
+      "ok": true,
+      "detail": "1180x760"
+    },
+    {
+      "name": "menu/open",
+      "ok": true,
+      "detail": "[\"显示侧边栏\",\"显示输出面板\",\"浅色主题\",\"切换全屏F11\"]"
+    },
+    {
+      "name": "menu/action",
+      "ok": true,
+      "detail": "{\"hidden\":true}"
+    },
+    {
+      "name": "contextmenu/html",
+      "ok": true,
+      "detail": "[\"打开\",\"在此新建文件\",\"在此新建文件夹\",\"重命名\",\"复制相对路径\",\"在文件管理器中显示\",\"删除\"]"
+    },
+    {
+      "name": "editor/open",
+      "ok": true,
+      "detail": "{\"editor\":true,\"tab\":true}"
+    },
+    {
+      "name": "editor/save",
+      "ok": true,
+      "detail": "18B -> config.json"
+    },
+    {
+      "name": "menu/native:popup",
+      "ok": true,
+      "detail": "requestId=menu-1"
+    },
+    {
+      "name": "menu/native:dispatch",
+      "ok": true,
+      "detail": "{\"id\":\"na\",\"requestId\":\"menu-1\"}"
+    }
+  ],
+  "workspace": "/tmp/axon-shell-verify-rlxw0qp0"
+}
