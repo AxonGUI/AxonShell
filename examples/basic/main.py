@@ -19,7 +19,6 @@ from pathlib import Path
 FROZEN = bool(getattr(sys, "frozen", False))
 BASE_DIR = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent))
 WEB_DIR = BASE_DIR / "web"
-BRAND_FILE = (BASE_DIR / "axon-mark.svg") if FROZEN else BASE_DIR.parent.parent / "assets" / "axon-mark.svg"
 
 WEB_NAME = "BasicDemo"
 
@@ -31,6 +30,22 @@ from axon import AxonController, AxonMagicGUI  # noqa: E402
 from axon_shell import AxonShellWindow, assets_dir  # noqa: E402
 
 SHELL_ASSETS = Path(assets_dir())
+
+
+def find_brand() -> Path | None:
+    """标题栏图标：AXON_BRAND > 打包/示例目录里的 品牌图 > 仓库 assets > 包内 PNG。"""
+    for cand in (
+        os.environ.get("AXON_BRAND"),
+        BASE_DIR / "axon-mark.svg",
+        BASE_DIR.parent.parent / "assets" / "axon-mark.svg",
+        SHELL_ASSETS / "icon-256.png",
+    ):
+        if cand and Path(cand).is_file():
+            return Path(cand)
+    return None
+
+
+BRAND_FILE = find_brand()
 
 
 def find_axon_bundle() -> Path:
@@ -99,7 +114,10 @@ class Handler(SimpleHTTPRequestHandler):
         if path in ("/vendor/axon.umd.cjs", "/vendor/axon.js"):
             return self._send(self.bundle, "text/javascript; charset=utf-8")
         if path == "/brand.svg":
-            return self._send(BRAND_FILE, "image/svg+xml")
+            if BRAND_FILE is None:
+                return self.send_error(404)
+            mime = "image/svg+xml" if BRAND_FILE.suffix == ".svg" else "image/png"
+            return self._send(BRAND_FILE, mime)
         if path == "/axon-shell/shell.js":
             return self._send(SHELL_ASSETS / "shell.js", "text/javascript; charset=utf-8")
         return super().do_GET()

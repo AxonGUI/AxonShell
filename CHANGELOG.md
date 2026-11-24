@@ -4,6 +4,19 @@
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-11-24
+
+### 修复
+
+- `examples/basic/main.py`：标题栏品牌图改成多级查找（`AXON_BRAND` → 打包目录 → 仓库 `assets/` → 包内
+  `icon-256.png`），按扩展名给 Content-Type。以前在「把示例目录拷到别处、只 `pip install axon-shell`」
+  这种真实用法下会抛 `FileNotFoundError: /tmp/assets/axon-mark.svg`（示例能跑，但启动时打一段 traceback）。
+
+### 变更
+
+- CI 改成从 PyPI 装 `axon-gui==5.3.4`（不再依赖 Release 上的 wheel 链接），顺带验证「框架在 PyPI 上」这条路。
+- 新增 `.github/workflows/publish-pypi.yml`：Trusted Publishing（OIDC），`workflow_dispatch` 触发。
+
 ## [0.2.0] - 2026-11-24
 
 收缩成「只做网页做不了的那层」。纯前端的部分（标题栏、菜单条、窗口按钮样式、主题、右键菜单面板）

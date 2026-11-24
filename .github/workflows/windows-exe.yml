@@ -8,9 +8,6 @@ on:
 permissions:
   contents: write
 
-env:
-  AXON_WHEEL: https://github.com/AxonGUI/Axon/releases/download/v5.3.4/axon_gui-5.3.4-py3-none-any.whl
-
 jobs:
   build:
     name: 打包 Windows 免安装版
@@ -27,8 +24,8 @@ jobs:
       - name: 装依赖
         run: |
           python -m pip install --upgrade pip
-          python -m pip install "$env:AXON_WHEEL"
-          python -m pip install --no-deps -e .
+          python -m pip install "axon-gui==5.3.4"
+          python -m pip install -e .
           python -m pip install pyinstaller
 
       - name: 取 axon 前端产物

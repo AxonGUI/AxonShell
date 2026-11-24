@@ -1,0 +1,30 @@
+name: Publish to PyPI
+
+# Trusted Publishing（OIDC）：仓库里不存任何长期 token。
+# PyPI 上配好 pending publisher 之后，在 Actions 里手动触发即可。
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    name: 构建并发布 axon-shell
+    runs-on: ubuntu-22.04
+    environment:
+      name: pypi
+      url: https://pypi.org/p/axon-shell
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+
+      - name: 构建 wheel + sdist
+        run: uv build
+
+      - name: 发布
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/
