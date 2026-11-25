@@ -4,6 +4,18 @@
 
 ## [Unreleased]
 
+## [0.2.2] 2026-11-25
+
+### 新增
+
+- `AxonShell.init({ axon })`：可以直接把 `import * as AxonLib from "axon-gui"` 的命名空间传给
+  `init()`，不再要求页面上存在 `window.axon` 全局——用 Vite/Webpack 打包的应用终于能直接用，
+  不必为了 shell 额外挂一个 UMD 全局。
+
+### 说明
+
+- 不传 `{ axon }` 时行为不变（仍然读 `window.axon`），纯 `<script>` 引入的页面无需改动。
+
 ## [0.2.1] - 2026-11-24
 
 ### 修复

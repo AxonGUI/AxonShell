@@ -31,13 +31,20 @@
     frame: { x: 0, y: 0, width: 0, height: 0 },
     maximized: false,
     fullScreen: false,
+    lib: null,
     listeners: { state: [], menu: [] },
   };
 
   /* ── axon 库 ─────────────────────────────────────────────── */
   function lib() {
-    const api = global.axon;
-    if (!api) throw new Error("axon-shell: 先加载 axon 的产物（window.axon）");
+    // 用打包器时没有 window.axon，把命名空间直接传进来：AxonShell.init({ axon: AxonLib })
+    const api = state.lib || global.axon;
+    if (!api) {
+      throw new Error(
+        "axon-shell: 没有拿到 axon 库——要么先加载 axon 的 UMD 产物（window.axon），" +
+          "要么 AxonShell.init({ axon: <import * as AxonLib from 'axon-gui'> })"
+      );
+    }
     return api;
   }
   function win() {
@@ -290,6 +297,7 @@
       return snapshot();
     }
     state.ready = true;
+    if (opts.axon) state.lib = opts.axon;
 
     if (opts.controls !== false) bindControls(doc);
 
