@@ -7,4 +7,4 @@
 from .window import AxonShellWindow, AxonWindow, WindowBridge, assets_dir
 
 __all__ = ["AxonShellWindow", "AxonWindow", "WindowBridge", "assets_dir"]
-__version__ = "0.2.1"
+__version__ = "0.2.2"
