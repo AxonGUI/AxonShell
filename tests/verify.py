@@ -190,6 +190,160 @@ class Harness:
         record("window/resizeTo", ok, f"{data.get('width')}x{data.get('height')}")
         self.next()
 
+    # ---- 6) 位置：setBounds / center / screens -------------------------
+    def step_bounds(self) -> None:
+        self.push(
+            "window.axon.Axon.Window.setBounds(120, 90, 860, 600)"
+            ".then(() => new Promise(r => setTimeout(r, 300)))"
+            ".then(() => window.axon.Axon.Window.frame())"
+        )
+        self.take(lambda batch: self._after_frame("window/setBounds", batch, 120, 90, 860, 600))
+
+    def _after_frame(self, name, batch, x, y, w, h) -> None:
+        data = batch[-1] if batch else {}
+        ok = (
+            abs(int(data.get("x", -999)) - x) <= 8
+            and abs(int(data.get("y", -999)) - y) <= 8
+            and abs(int(data.get("width", 0)) - w) <= 8
+            and abs(int(data.get("height", 0)) - h) <= 8
+        )
+        record(name, ok, f"{data.get('width')}x{data.get('height')} @ ({data.get('x')},{data.get('y')})")
+        if name == "window/center":
+            self.next()
+        else:
+            self.next()
+
+    def step_center(self) -> None:
+        self.push(
+            "window.axon.Axon.Window.center()"
+            ".then(() => new Promise(r => setTimeout(r, 300)))"
+            ".then(() => window.axon.Axon.Window.frame())"
+        )
+        self.take(self._after_center)
+
+    def _after_center(self, batch) -> None:
+        data = batch[-1] if batch else {}
+        screens = getattr(self, "_screens", None) or []
+        screen = screens[0] if screens else {}
+        w, h = int(data.get("width", 0)), int(data.get("height", 0))
+        cx = int(screen.get("workX", 0)) + (int(screen.get("workWidth", 0)) - w) // 2
+        cy = int(screen.get("workY", 0)) + (int(screen.get("workHeight", 0)) - h) // 2
+        ok = abs(int(data.get("x", -9999)) - cx) <= 12 and abs(int(data.get("y", -9999)) - cy) <= 12
+        record("window/center", ok, f"({data.get('x')},{data.get('y')}) 期望 ({cx},{cy})")
+        self.next()
+
+    def step_screens(self) -> None:
+        self.push("window.axon.Axon.Window.screens()")
+        self.take(self._after_screens)
+
+    def _after_screens(self, batch) -> None:
+        data = batch[-1] if batch else []
+        ok = isinstance(data, list) and len(data) >= 1 and "workWidth" in (data[0] or {})
+        if ok:
+            self._screens = data
+        record("window/screens", ok, f"{len(data) if isinstance(data, list) else 0} 块屏")
+        self.next()
+
+    # ---- 7) 尺寸约束与可缩放 -------------------------------------------
+    def step_resizable_off(self) -> None:
+        self.push(
+            "window.axon.Axon.Window.setResizable(false)"
+            ".then(() => new Promise(r => setTimeout(r, 200)))"
+            ".then(() => window.axon.Axon.Window.state())"
+        )
+        QTimer.singleShot(
+            700,
+            lambda: (
+                record(
+                    "window/resizable_off",
+                    self.window.minimumSize() == self.window.maximumSize(),
+                    f"min={self.window.minimumSize().toTuple()} max={self.window.maximumSize().toTuple()}",
+                ),
+                self.next(),
+            ),
+        )
+
+    def step_min_size(self) -> None:
+        self.push(
+            "window.axon.Axon.Window.setMinimumSize(700, 500)"
+            ".then(() => window.axon.Axon.Window.resizeTo(420, 320))"
+            ".then(() => new Promise(r => setTimeout(r, 300)))"
+            ".then(() => window.axon.Axon.Window.state())"
+        )
+        self.take(self._after_min_size)
+
+    def _after_min_size(self, batch) -> None:
+        data = batch[-1] if batch else {}
+        w, h = int(data.get("width", 0)), int(data.get("height", 0))
+        record("window/minSize", w >= 700 and h >= 500, f"{w}x{h}（最小 700x500）")
+        self.next()
+
+    def step_resizable_on(self) -> None:
+        self.push(
+            "window.axon.Axon.Window.setResizable(true)"
+            ".then(() => window.axon.Axon.Window.setMaximumSize(0, 0))"
+            ".then(() => window.axon.Axon.Window.resizeTo(880, 620))"
+            ".then(() => new Promise(r => setTimeout(r, 300)))"
+            ".then(() => window.axon.Axon.Window.state())"
+        )
+        self.take(self._after_resizable_on)
+
+    def _after_resizable_on(self, batch) -> None:
+        data = batch[-1] if batch else {}
+        w = int(data.get("width", 0))
+        record("window/resizable_on", abs(w - 880) <= 8, f"{w}（期望 880）")
+        self.next()
+
+    # ---- 8) 透明度 / 显隐 / 关闭守卫 ------------------------------------
+    def step_opacity(self) -> None:
+        self.push("window.axon.Axon.Window.setOpacity(0.85).then(() => 1)")
+        QTimer.singleShot(
+            500,
+            lambda: (
+                record(
+                    "window/opacity",
+                    abs(self.window.windowOpacity() - 0.85) < 0.05,
+                    f"{self.window.windowOpacity():.2f}",
+                ),
+                self.next(),
+            ),
+        )
+
+    def step_visible(self) -> None:
+        def check() -> None:
+            record("window/hide_show", self.window.isVisible(), f"isVisible={self.window.isVisible()}")
+            self.next()
+
+        self.push("window.axon.Axon.Window.hide()")
+        QTimer.singleShot(
+            400,
+            lambda: (
+                record("window/hide", not self.window.isVisible(), f"isVisible={self.window.isVisible()}"),
+                self.push("window.axon.Axon.Window.show()"),
+                QTimer.singleShot(500, check),
+            ),
+        )
+
+    def step_close_guard(self) -> None:
+        js = (
+            "(window.__guardHit = 0, "
+            "window.__disposeGuard = window.AxonShell.window.onCloseRequest(() => { window.__guardHit++; }), 1)"
+        )
+        self.push(js)
+        QTimer.singleShot(500, self._guard_close)
+
+    def _guard_close(self) -> None:
+        self.push("window.axon.Axon.Window.close()")
+        QTimer.singleShot(
+            600,
+            lambda: (
+                record("window/close_guard", self.window.isVisible(), "有守卫时窗口没被关掉"),
+                self.window.__setattr__("_close_guard", False),
+                self.window.__setattr__("_allow_close", False),
+                self.next(),
+            ),
+        )
+
     # ---- 5) JS → Python 往返 --------------------------------------------
     def step_echo(self) -> None:
         self.push("window.axon.Axon.App.echo('hello')")
@@ -264,6 +418,15 @@ def main() -> int:
         h.step_restore,
         h.step_resize,
         h.step_echo,
+        h.step_bounds,
+        h.step_screens,
+        h.step_center,
+        h.step_resizable_off,
+        h.step_min_size,
+        h.step_resizable_on,
+        h.step_opacity,
+        h.step_visible,
+        h.step_close_guard,
         h.step_native,
     ]
     h.boot()

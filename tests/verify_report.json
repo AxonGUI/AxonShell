@@ -1,5 +1,5 @@
 {
-  "when": "2026-11-24 14:02:23",
+  "when": "2026-11-26 02:08:27",
   "results": [
     {
       "name": "boot/connected",
@@ -50,6 +50,56 @@
       "name": "py/echo",
       "ok": true,
       "detail": "Python 收到：hello"
+    },
+    {
+      "name": "window/setBounds",
+      "ok": true,
+      "detail": "860x600 @ (120,90)"
+    },
+    {
+      "name": "window/screens",
+      "ok": true,
+      "detail": "1 块屏"
+    },
+    {
+      "name": "window/center",
+      "ok": true,
+      "detail": "(-30,100) 期望 (-30,100)"
+    },
+    {
+      "name": "window/resizable_off",
+      "ok": true,
+      "detail": "min=(860, 600) max=(860, 600)"
+    },
+    {
+      "name": "window/minSize",
+      "ok": true,
+      "detail": "860x600（最小 700x500）"
+    },
+    {
+      "name": "window/resizable_on",
+      "ok": true,
+      "detail": "880（期望 880）"
+    },
+    {
+      "name": "window/opacity",
+      "ok": true,
+      "detail": "0.85"
+    },
+    {
+      "name": "window/hide",
+      "ok": true,
+      "detail": "isVisible=False"
+    },
+    {
+      "name": "window/hide_show",
+      "ok": true,
+      "detail": "isVisible=True"
+    },
+    {
+      "name": "window/close_guard",
+      "ok": true,
+      "detail": "有守卫时窗口没被关掉"
     },
     {
       "name": "menu/native:popup",

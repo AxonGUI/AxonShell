@@ -4,6 +4,23 @@
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-26
+
+### 新增
+
+- 窗口操作补全：`show` `hide` `activate` `isVisible` `flash`（显隐与提醒）、`setOpacity`、
+  `setSkipTaskbar`、`setMinimumSize` `setMaximumSize` `setResizable`（尺寸约束）、
+  `setBounds` `center`（位置）、`screens` `currentScreen`（多显示器）、`systemMenu`（Windows 原生窗口菜单）。
+- 关闭前拦截：`onCloseRequest(cb)` + `confirmClose()`，用于「有未保存修改」这类确认。
+- `window:state` 增加 `visible` `focused` `alwaysOnTop` `resizable` 四个字段，移动/缩放/焦点变化都会推。
+
+### 修复
+
+- **HiDPI 下拖动区与缩放边缘会偏**：`WM_NCHITTEST` 给的是物理像素，原来直接丢给
+  `mapFromGlobal()`（要逻辑像素），在 125% / 150% 缩放下按 1.25 / 1.5 偏移。现按
+  `devicePixelRatioF()` 换算。
+
+
 ## [0.2.2] 2026-11-25
 
 ### 新增

@@ -112,9 +112,18 @@ class AxonShellWindow(AxonGUI):
         self._active_menu: Optional[QMenu] = None
         self._last_menu: Optional[QMenu] = None  # 测试钩子
         self._state_dirty = False
+        self._close_guard = False  # 页面注册了「关闭前问问」才拦
+        self._allow_close = False
+        self._resizable = True
+        self._skip_taskbar = False
+        self._close_guard = False  # 页面注册了「关闭前问问」才拦
+        self._allow_close = False
+        self._resizable = True
+        self._skip_taskbar = False
 
         self.setWindowFlag(Qt.WindowType.FramelessWindowHint, True)
         self.setWindowTitle(title)
+        self._min_size = (int(min_size[0]), int(min_size[1]))
         self.setMinimumSize(*min_size)
         self._fit_to_screen(size)
         self._apply_icon(QApplication.instance())
@@ -160,6 +169,10 @@ class AxonShellWindow(AxonGUI):
             "x": self.x(),
             "y": self.y(),
             "platform": PLATFORM,
+            "visible": self.isVisible(),
+            "focused": self.isActiveWindow(),
+            "alwaysOnTop": bool(self.windowFlags() & Qt.WindowType.WindowStaysOnTopHint),
+            "resizable": self._resizable,
         }
 
     def set_drag_regions(self, regions: Sequence[DragRect]):
@@ -172,6 +185,129 @@ class AxonShellWindow(AxonGUI):
             }
             for r in regions or ()
         ]
+
+    # ------------------------------------------------------------------ 尺寸与外观
+    def set_min_size(self, width: int, height: int):
+        self.setMinimumSize(max(0, int(width)), max(0, int(height)))
+
+    def set_max_size(self, width: int, height: int):
+        """0 / 0 表示不限制。"""
+        self.setMaximumSize(int(width) or 16777215, int(height) or 16777215)
+
+    def set_resizable(self, on: bool):
+        self._resizable = bool(on)
+        if self._resizable:
+            self.setMinimumSize(self._min_size[0], self._min_size[1])
+            self.setMaximumSize(16777215, 16777215)
+        else:
+            size = self.size()
+            self.setFixedSize(size)
+        self._schedule_state()
+
+    def apply_skip_taskbar(self, skip: bool):
+        """不占任务栏 / Alt-Tab（`Tool` 窗口）。"""
+        self._skip_taskbar = bool(skip)
+        flags = self.windowFlags()
+        if self._skip_taskbar:
+            flags |= Qt.WindowType.Tool
+        else:
+            flags &= ~Qt.WindowType.Tool
+        visible = self.isVisible()
+        self.setWindowFlags(flags)
+        if visible:
+            self.show()
+
+    def flash(self, msec: int = 0) -> bool:
+        """请求注意力（Windows 任务栏闪烁 / macOS 跳 Dock）。"""
+        QApplication.alert(self, max(0, int(msec)))
+        return True
+
+    def set_opacity_value(self, value: float):
+        self.setWindowOpacity(min(1.0, max(0.1, float(value))))
+
+    def center_on_current_screen(self):
+        screen = self.screen() or QGuiApplication.primaryScreen()
+        if screen is None:
+            return
+        area = screen.availableGeometry()
+        geo = self.frameGeometry()
+        self.move(
+            area.x() + (area.width() - geo.width()) // 2,
+            area.y() + (area.height() - geo.height()) // 2,
+        )
+
+    def set_bounds(self, x: int, y: int, width: int, height: int):
+        self.setGeometry(int(x), int(y), max(1, int(width)), max(1, int(height)))
+
+    # ------------------------------------------------------------------ 屏幕
+    def screens_info(self) -> list[dict[str, Any]]:
+        primary = QGuiApplication.primaryScreen()
+        result: list[dict[str, Any]] = []
+        for screen in QGuiApplication.screens():
+            geo, area = screen.geometry(), screen.availableGeometry()
+            result.append(
+                {
+                    "name": screen.name(),
+                    "x": geo.x(),
+                    "y": geo.y(),
+                    "width": geo.width(),
+                    "height": geo.height(),
+                    "workX": area.x(),
+                    "workY": area.y(),
+                    "workWidth": area.width(),
+                    "workHeight": area.height(),
+                    "scale": float(screen.devicePixelRatio()),
+                    "primary": screen is primary,
+                }
+            )
+        return result
+
+    def current_screen_info(self) -> dict[str, Any]:
+        screen = self.screen() or QGuiApplication.primaryScreen()
+        if screen is None:
+            return {}
+        geo = screen.geometry()
+        for info in self.screens_info():
+            if info["name"] == screen.name() and info["width"] == geo.width():
+                return info
+        return {"name": screen.name(), "width": geo.width(), "height": geo.height()}
+
+    # ------------------------------------------------------------------ Windows 系统菜单
+    def system_menu(self, x: Optional[int] = None, y: Optional[int] = None) -> bool:
+        """在指定位置弹原生窗口菜单（还原/移动/大小/最小化/最大化/关闭）。"""
+        if PLATFORM != "win32":
+            return False
+        try:
+            import ctypes
+            from ctypes import wintypes
+
+            user32 = ctypes.windll.user32
+            user32.GetSystemMenu.restype = wintypes.HMENU
+            user32.GetSystemMenu.argtypes = [wintypes.HWND, wintypes.BOOL]
+            user32.TrackPopupMenu.restype = ctypes.c_int
+            user32.TrackPopupMenu.argtypes = [
+                wintypes.HMENU, wintypes.UINT, ctypes.c_int, ctypes.c_int,
+                ctypes.c_int, wintypes.HWND, ctypes.c_void_p,
+            ]
+            user32.PostMessageW.argtypes = [wintypes.HWND, wintypes.UINT, wintypes.WPARAM, wintypes.LPARAM]
+
+            hwnd = wintypes.HWND(int(self.winId()))
+            menu = user32.GetSystemMenu(hwnd, False)
+            if not menu:
+                return False
+            maximized = self.isMaximized()
+            # 按当前状态把「还原/最大化」置灰
+            user32.EnableMenuItem(menu, 0xF120, 0 if maximized else 0x1)   # SC_RESTORE
+            user32.EnableMenuItem(menu, 0xF030, 0x1 if maximized else 0)   # SC_MAXIMIZE
+            origin = self.mapToGlobal(QPoint(0, 0))
+            px = origin.x() + (int(x) if isinstance(x, (int, float)) else 40)
+            py = origin.y() + (int(y) if isinstance(y, (int, float)) else 40)
+            cmd = user32.TrackPopupMenu(menu, 0x0100 | 0x0002 | 0x0004 | 0x0008, px, py, 0, hwnd, None)
+            if cmd:
+                user32.PostMessageW(hwnd, 0x0112, cmd, 0)
+            return True
+        except Exception:
+            return False
 
     # ------------------------------------------------------------------ 事件回传
     def _emit_state(self):
@@ -206,6 +342,31 @@ class AxonShellWindow(AxonGUI):
     def resizeEvent(self, event) -> None:  # noqa: N802 - Qt 命名
         super().resizeEvent(event)
         self._schedule_state()
+
+    def focusInEvent(self, event) -> None:  # noqa: N802 - Qt 命名
+        super().focusInEvent(event)
+        self._schedule_state()
+
+    def focusOutEvent(self, event) -> None:  # noqa: N802 - Qt 命名
+        super().focusOutEvent(event)
+        self._schedule_state()
+
+    def closeEvent(self, event) -> None:  # noqa: N802 - Qt 命名
+        """页面注册了关闭守卫时，先问一句再关（比如「有未保存修改」）。
+
+        JS 侧 `AxonShell.window.onCloseRequest(fn)` 注册处理函数后，会调
+        `Window.setCloseGuard(true)`；处理函数里可以异步决定，最后调
+        `AxonShell.window.confirmClose()` 才会真的关。
+        """
+        if self._close_guard and not self._allow_close:
+            self._allow_close = False
+            try:
+                AxonEvent.dispatch_js_event(self.web_name, "window:closerequest", [])
+            except Exception:
+                pass
+            event.ignore()
+            return
+        super().closeEvent(event)
 
     def _emit_menu_selected(self, request_id: str, item_id: Optional[str]):
         try:
@@ -262,7 +423,10 @@ class AxonShellWindow(AxonGUI):
                     if msg.message == WM_NCHITTEST:
                         x = ctypes.c_short(msg.lParam & 0xFFFF).value
                         y = ctypes.c_short((msg.lParam >> 16) & 0xFFFF).value
-                        hit = self._hit_test(self.mapFromGlobal(QPoint(x, y)))
+                        # WM_NCHITTEST 的坐标是物理像素；Qt 的 mapFromGlobal 要逻辑像素
+                        dpr = self.devicePixelRatioF() or 1.0
+                        logical = QPoint(int(x / dpr), int(y / dpr))
+                        hit = self._hit_test(self.mapFromGlobal(logical))
                         if hit is not None:
                             return True, hit
             except Exception:
@@ -434,6 +598,102 @@ class WindowBridge(QObject):
     @Slot(str)
     def setTitle(self, title: str):  # noqa: N802
         self._gui(lambda: self._window.setWindowTitle(str(title)))
+
+    # ---------------------------------------------------------------- 显隐与焦点
+    @Slot()
+    def show(self):
+        self._gui(self._window.show)
+
+    @Slot()
+    def hide(self):
+        self._gui(self._window.hide)
+
+    @Slot()
+    def showWindow(self):  # noqa: N802 - 兼容旧写法
+        self.show()
+
+    @Slot()
+    def hideWindow(self):  # noqa: N802 - 兼容旧写法
+        self.hide()
+
+    @Slot()
+    def activate(self):
+        def apply():
+            self._window.show()
+            self._window.raise_()
+            self._window.activateWindow()
+
+        self._gui(apply)
+
+    @Slot(result=bool)
+    def isVisible(self) -> bool:  # noqa: N802
+        return bool(self._gui(self._window.isVisible))
+
+    @Slot(int, int)
+    def setMinimumSize(self, width: int, height: int):  # noqa: N802
+        self._gui(lambda: self._window.set_min_size(width, height))
+
+    @Slot(int, int)
+    def setMaximumSize(self, width: int, height: int):  # noqa: N802
+        self._gui(lambda: self._window.set_max_size(width, height))
+
+    @Slot(bool)
+    def setResizable(self, on: bool):  # noqa: N802
+        self._gui(lambda: self._window.set_resizable(_as_bool(on)))
+
+    @Slot(float)
+    def setOpacity(self, value: float):  # noqa: N802
+        self._gui(lambda: self._window.set_opacity_value(float(value)))
+
+    @Slot(bool)
+    def setSkipTaskbar(self, skip: bool):  # noqa: N802
+        self._gui(lambda: self._window.apply_skip_taskbar(_as_bool(skip)))
+
+    @Slot(result=bool)
+    def flash(self) -> bool:
+        return bool(self._gui(self._window.flash))
+
+    @Slot(bool)
+    def setCloseGuard(self, on: bool):  # noqa: N802
+        """页面注册了「关闭前问问」时打开；关闭要再调 close() 才生效。"""
+
+        def apply():
+            self._window._close_guard = _as_bool(on)
+            if not self._window._close_guard:
+                self._window._allow_close = False
+
+        self._gui(apply)
+
+    @Slot(result=bool)
+    def confirmClose(self) -> bool:  # noqa: N802
+        def apply():
+            self._window._allow_close = True
+            self._window.close()
+            return True
+
+        return bool(self._gui(apply))
+
+    # ---------------------------------------------------------------- 屏幕与位置
+    @Slot(result="QVariantList")
+    def screens(self) -> list[dict[str, Any]]:
+        return self._gui(self._window.screens_info)
+
+    @Slot(result="QVariantMap")
+    def currentScreen(self) -> dict[str, Any]:  # noqa: N802
+        return self._gui(self._window.current_screen_info)
+
+    @Slot()
+    def center(self):
+        self._gui(self._window.center_on_current_screen)
+
+    @Slot(int, int, int, int)
+    def setBounds(self, x: int, y: int, width: int, height: int):  # noqa: N802
+        self._gui(lambda: self._window.set_bounds(x, y, width, height))
+
+    @Slot(int, int, result=bool)
+    def systemMenu(self, x: Optional[int] = None, y: Optional[int] = None) -> bool:  # noqa: N802
+        """原生窗口菜单（Windows）；其它平台返回 False，由页面自己画。"""
+        return bool(self._gui(lambda: self._window.system_menu(x, y)))
 
     # ---------------------------------------------------------------- 拖动/缩放
     @Slot("QVariantList")
