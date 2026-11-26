@@ -98,7 +98,8 @@ print(assets_dir())   # .../axon_shell/assets
 | 名字 | 说明 |
 | --- | --- |
 | `AxonShellWindow(web_name, url, title=…, size=…, min_size=…, options=…)` | 继承 `AxonGUI`，去系统边框、设图标、初始尺寸不超出屏幕，注册 `Axon.Window` |
-| `Axon.Window`（控制器） | `minimize` `maximize` `restore` `toggleMaximize` `toggleFullScreen` `close` `setAlwaysOnTop` `setTitle` `setDragRegions` `beginSystemMove` `moveTo` `resizeTo` `moveBy` `frame` `state` `platform` `popupMenu` `closeMenu` |
+| `Axon.Window`（控制器） | 见下面「窗口操作清单」 |
+| 事件 `window:closerequest` | 页面注册了关闭守卫（`onCloseRequest`）时，用户点关闭会先发这个 |
 | 事件 `window:state` | 最大化 / 全屏 / 位置尺寸变化（60ms 合并后推一次） |
 | 事件 `window:menu` | 原生菜单被选中：`{requestId, id}` |
 | `assets_dir()` | `assets` 目录，里面只有 `shell.js`、图标 |
@@ -112,14 +113,45 @@ print(assets_dir())   # .../axon_shell/assets
 | --- | --- |
 | `init(opts?)` | 幂等安装：`data-axon-window` 点击、`[data-axon-drag]` 上报、状态/菜单事件订阅 |
 | `drag.refresh()` / `drag.regions()` | 重新计算拖动区（布局变了要调）；返回 `[{left,top,width,height}, …]` |
-| `window.state()` | `{platform, frame:{x,y,width,height}, maximized, fullScreen}` |
-| `window.minimize()` `toggleMaximize()` `close()` `setTitle()` `setAlwaysOnTop()` `refresh()` | 常用窗口操作 |
+| `window.state()` | `{platform, frame, maximized, fullScreen, visible, focused, alwaysOnTop, resizable}` |
+| `window.minimize/maximize/restore/toggleMaximize/toggleFullScreen/close()` | 窗口按钮 |
+| `window.show/hide/activate/isVisible/flash()` | 显隐与提醒 |
+| `window.setTitle/setAlwaysOnTop/setOpacity/refresh()` | 标题、置顶、透明度 |
+| `window.setMinimumSize/setMaximumSize/setResizable` | 尺寸约束 |
+| `window.moveTo/moveBy/resizeTo/setBounds/center` | 位置与尺寸 |
+| `window.screens()/currentScreen()` | 多显示器信息（含工作区与缩放） |
+| `window.systemMenu(x?, y?)` | 原生窗口菜单（Windows；其它平台返回 false） |
+| `window.setSkipTaskbar(bool)` | 不占任务栏 / Alt-Tab |
+| `window.onCloseRequest(cb)` → `confirmClose()` | 关闭前拦截（未保存提示）；返回的函数退订会解除守卫 |
 | `window.onState(cb)` | 订阅窗口状态 |
 | `menu.native(spec)` / `menu.onSelect(cb)` | 让 Qt 弹原生菜单；`spec` 是 `{id?, title?, items:[…]}`，每项 `{id,label,shortcut?,kind?:separator/check/radio,checked?,disabled?,items?}` |
 | `enableFallback()` | 非 win32/darwin 上补拖动与 8 向缩放（`init()` 会自动开） |
 
 `init()` 之后 `<html>` 上会有 `data-axon-platform="win32|linux|darwin"` 与
 `data-axon-maximized="true|false"`，你在 CSS 里可以据此调布局（比如去掉圆角）。
+
+## 窗口操作清单
+
+| 类别 | 方法 | Windows | Linux | macOS |
+| --- | --- | --- | --- | --- |
+| 最小化 / 最大化 / 还原 | `minimize` `maximize` `restore` `toggleMaximize` | ✓ | ✓ | ✓ |
+| 全屏 | `toggleFullScreen` | ✓ | ✓ | ✓ |
+| 关闭 | `close` / `onCloseRequest` + `confirmClose` | ✓ | ✓ | ✓ |
+| 拖动 | `[data-axon-drag]` → `setDragRegions`（原生命中） | 系统拖 | 前端兜底 | 系统拖 |
+| 缩放 | 8 向边缘/角落 | 原生命中 | 前端兜底 | 系统拖 |
+| 尺寸约束 | `setMinimumSize` `setMaximumSize` `setResizable` | ✓ | ✓ | ✓ |
+| 位置 | `moveTo` `moveBy` `setBounds` `center` | ✓ | ✓ | ✓ |
+| 状态 | `state` `frame` `isMaximized` `isVisible` | ✓ | ✓ | ✓ |
+| 状态事件 | `window:state`（移动/缩放/最大化/焦点，60ms 合并） | ✓ | ✓ | ✓ |
+| 置顶 | `setAlwaysOnTop` | ✓ | ✓ | ✓ |
+| 透明度 | `setOpacity` | ✓ | ✓ | ✓ |
+| 标题 | `setTitle` | ✓ | ✓ | ✓ |
+| 多显示器 | `screens` `currentScreen` | ✓ | ✓ | ✓ |
+| 任务栏 | `setSkipTaskbar` `flash` | ✓ | 部分 | 部分 |
+| 系统菜单 | `systemMenu(x,y)` 右键标题栏 | ✓ | — | — |
+| 原生菜单 | `popupMenu` + `window:menu` | ✓ | ✓ | ✓ |
+
+还没做的（有需要再说）：Windows 任务栏进度条、Windows 11 悬停最大化按钮的贴靠布局浮窗（需要接管 `HTMAXBUTTON`）、托盘图标与最小化到托盘、macOS 红绿灯按钮。
 
 ## 各平台怎么动窗口
 

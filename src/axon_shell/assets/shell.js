@@ -31,8 +31,12 @@
     frame: { x: 0, y: 0, width: 0, height: 0 },
     maximized: false,
     fullScreen: false,
+    visible: true,
+    focused: false,
+    alwaysOnTop: false,
+    resizable: true,
     lib: null,
-    listeners: { state: [], menu: [] },
+    listeners: { state: [], menu: [], close: [] },
   };
 
   /* ── axon 库 ─────────────────────────────────────────────── */
@@ -118,6 +122,10 @@
     state.platform = data.platform || state.platform;
     state.maximized = !!data.maximized;
     state.fullScreen = !!data.fullScreen;
+    if (data.visible !== undefined) state.visible = !!data.visible;
+    if (data.focused !== undefined) state.focused = !!data.focused;
+    if (data.alwaysOnTop !== undefined) state.alwaysOnTop = !!data.alwaysOnTop;
+    if (data.resizable !== undefined) state.resizable = !!data.resizable;
     state.frame = {
       x: data.x ?? state.frame.x,
       y: data.y ?? state.frame.y,
@@ -305,6 +313,20 @@
       const { AxonEvent } = lib();
       AxonEvent.addListener("window:state", (payload) => applyState(payload || {}));
       AxonEvent.addListener("window:menu", (payload) => emit("menu", payload || {}));
+      AxonEvent.addListener("window:closerequest", () => {
+        if (!state.listeners.close.length) {
+          // 没人拦：直接关，避免窗口关不掉
+          win().confirmClose();
+          return;
+        }
+        for (const fn of state.listeners.close.slice()) {
+          try {
+            fn();
+          } catch (err) {
+            logError(err);
+          }
+        }
+      });
     } catch (err) {
       logError(err);
     }
@@ -334,6 +356,10 @@
       frame: { ...state.frame },
       maximized: state.maximized,
       fullScreen: state.fullScreen,
+      visible: state.visible,
+      focused: state.focused,
+      alwaysOnTop: state.alwaysOnTop,
+      resizable: state.resizable,
     };
   }
 
@@ -343,12 +369,57 @@
     window: {
       state: snapshot,
       refresh: refreshState,
+      frame: () => win().frame(),
+
+      // 显隐与焦点
+      show: () => win().show(),
+      hide: () => win().hide(),
+      activate: () => win().activate(),
+      isVisible: () => win().isVisible(),
+      flash: () => win().flash(),
+
+      // 最小化 / 最大化 / 还原 / 全屏 / 关闭
       minimize: () => win().minimize(),
+      maximize: () => win().maximize(),
+      restore: () => win().restore(),
       toggleMaximize: () => win().toggleMaximize().then((v) => applyState({ maximized: v })),
+      toggleFullScreen: () => win().toggleFullScreen(),
       close: () => win().close(),
+
+      // 标题 / 置顶 / 透明度 / 任务栏
       setTitle: (text) => win().setTitle(text),
       setAlwaysOnTop: (on) => win().setAlwaysOnTop(on),
-      frame: () => win().frame(),
+      setOpacity: (value) => win().setOpacity(value),
+      setSkipTaskbar: (skip) => win().setSkipTaskbar(skip),
+
+      // 尺寸约束
+      setMinimumSize: (w, h) => win().setMinimumSize(w, h),
+      setMaximumSize: (w, h) => win().setMaximumSize(w, h),
+      setResizable: (on) => win().setResizable(on),
+
+      // 位置与屏幕
+      moveTo: (x, y) => win().moveTo(x, y),
+      moveBy: (dx, dy) => win().moveBy(dx, dy),
+      resizeTo: (w, h) => win().resizeTo(w, h),
+      setBounds: (x, y, w, h) => win().setBounds(x, y, w, h),
+      center: () => win().center(),
+      screens: () => win().screens(),
+      currentScreen: () => win().currentScreen(),
+
+      // 原生窗口菜单（Windows）；返回 false 说明这个平台没有
+      systemMenu: (x, y) => win().systemMenu(x, y),
+
+      // 关闭前问问：注册了就拦，用户点「确定」再调 confirmClose()
+      onCloseRequest(cb) {
+        if (!state.listeners.close.includes(cb)) state.listeners.close.push(cb);
+        win().setCloseGuard(true);
+        return () => {
+          state.listeners.close = state.listeners.close.filter((fn) => fn !== cb);
+          if (!state.listeners.close.length) win().setCloseGuard(false);
+        };
+      },
+      confirmClose: () => win().confirmClose(),
+
       onState(cb) {
         state.listeners.state.push(cb);
         return () => {

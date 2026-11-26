@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "axon-shell"
-version = "0.2.2"
+version = "0.3.0"
 description = "The native window layer for Axon apps: frameless window, drag regions, window control, native menu bridge. No UI, no CSS."
 readme = "README.md"
 requires-python = ">=3.12"
