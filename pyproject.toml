@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "axon-shell"
-version = "0.3.0"
+version = "0.3.1"
 description = "The native window layer for Axon apps: frameless window, drag regions, window control, native menu bridge. No UI, no CSS."
 readme = "README.md"
 requires-python = ">=3.12"
@@ -17,7 +17,7 @@ classifiers = [
   "Topic :: Desktop Environment :: Window Managers",
   "License :: OSI Approved :: MIT License",
 ]
-dependencies = ["axon-gui>=5.3.4"]
+dependencies = ["axon-gui>=5.7.2"]
 
 [project.urls]
 Repository = "https://github.com/AxonGUI/AxonShell"
