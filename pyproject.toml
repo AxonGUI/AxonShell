@@ -4,16 +4,18 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "axon-shell"
-version = "0.3.1"
+version = "0.3.2"
 description = "The native window layer for Axon apps: frameless window, drag regions, window control, native menu bridge. No UI, no CSS."
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.12,<3.16"
 license = { text = "MIT" }
 authors = [{ name = "STofone" }]
 keywords = ["axon", "axon-gui", "pyside6", "qt", "desktop", "frameless-window", "window-controls", "native-menu"]
 classifiers = [
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "Topic :: Desktop Environment :: Window Managers",
   "License :: OSI Approved :: MIT License",
 ]
