@@ -30,7 +30,7 @@
 pip install axon-shell      # 会一并装上 axon-gui>=5.7.2 与 PySide6
 ```
 
-版本：`axon-shell` 0.3.1、`axon-gui` 5.7.2。装完 `python -c "import axon, axon_shell"` 不报错就对了。
+版本：`axon-shell` 0.3.2、`axon-gui` 5.7.3。Python 3.12 / 3.13 / 3.14 都跑过自检。装完 `python -c "import axon, axon_shell"` 不报错就对了。
 
 ## 三十秒接上
 
