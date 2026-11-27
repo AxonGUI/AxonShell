@@ -27,10 +27,10 @@ Everything else is frontend work. So this package is small on purpose: you can a
 ## Install
 
 ```bash
-pip install axon-shell      # pulls axon-gui>=5.3.4 and PySide6
+pip install axon-shell      # pulls axon-gui>=5.7.2 and PySide6
 ```
 
-Versions: `axon-shell` 0.2.1, `axon-gui` 5.3.4. If `python -c "import axon, axon_shell"` is quiet, you are set.
+Versions: `axon-shell` 0.3.1, `axon-gui` 5.7.2. If `python -c "import axon, axon_shell"` is quiet, you are set.
 
 ## Thirty seconds
 

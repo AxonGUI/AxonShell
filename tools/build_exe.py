@@ -31,7 +31,7 @@ def find_bundle() -> Path:
     for candidate in candidates:
         if candidate.is_file():
             return candidate
-    raise SystemExit("找不到 axon.umd.cjs：先在 examples/basic 里 `npm install axon-gui@1.0.0`")
+    raise SystemExit("找不到 axon.umd.cjs：先在 examples/basic 里 `npm install axon-gui@^1.4.2`")
 
 
 def import_roots() -> list[Path]:
