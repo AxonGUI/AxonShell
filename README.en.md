@@ -30,7 +30,7 @@ Everything else is frontend work. So this package is small on purpose: you can a
 pip install axon-shell      # pulls axon-gui>=5.7.2 and PySide6
 ```
 
-Versions: `axon-shell` 0.3.2, `axon-gui` 5.7.3. Smoke-tested on Python 3.12, 3.13 and 3.14. If `python -c "import axon, axon_shell"` is quiet, you are set.
+Versions: `axon-shell` 0.3.3, `axon-gui` 5.8.2. Headless smoke tests run on Python 3.12, 3.13, 3.14 and 3.15 in CI (declared support `>=3.12,<3.16`). If `python -c "import axon, axon_shell"` is quiet, you are set.
 
 ## Thirty seconds
 
