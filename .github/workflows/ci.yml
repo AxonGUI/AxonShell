@@ -71,3 +71,40 @@ jobs:
           name: verify-report-${{ matrix.python-version }}
           path: tests/verify_report.json
           if-no-files-found: ignore
+
+  # macOS：窗口层是「原生那一层」，在别的平台上跑通不代表 macOS 上也能开窗。
+  # 这里用 cocoa（不是 offscreen）跑同一份自检，并检查窗口真的可见。
+  macos:
+    name: macOS 自检 ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      # macos-13（Intel）已被 GitHub 退役；现役 x86_64 标准镜像是 macos-15-intel。
+      matrix:
+        os: ["macos-15-intel", "macos-latest"]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+      - name: 装 axon-gui 与依赖
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "axon-gui>=5.8.0"
+          python -m pip install -e .
+      - name: 取 axon 前端产物
+        working-directory: examples/basic
+        run: |
+          npm install axon-gui@^1.5.0 --no-save
+          test -f node_modules/axon-gui/dist/axon.umd.cjs
+      - name: 窗口自检（真窗口，cocoa）
+        working-directory: examples/basic
+        env:
+          QT_QPA_PLATFORM: cocoa
+          QTWEBENGINE_DISABLE_SANDBOX: "1"
+        run: python main.py --smoke
+      - name: 端到端自检（无头）
+        run: python tests/verify.py
