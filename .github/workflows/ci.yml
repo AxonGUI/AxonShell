@@ -31,9 +31,10 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
-      # axon-gui 声明支持 3.12–3.15；这里跟着框架把最新的两个小版本也真跑一遍
+      # axon-gui 声明支持 3.12–3.15（元数据上界 <3.16，跟着 PySide6 的轮子走）；
+      # 这里四个小版本全跑，声明了的版本就得有 CI 守着。
       matrix:
-        python-version: ["3.12", "3.13", "3.14"]
+        python-version: ["3.12", "3.13", "3.14", "3.15"]
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -52,7 +53,7 @@ jobs:
       - name: 装 axon-gui 与依赖
         run: |
           python -m pip install --upgrade pip
-          python -m pip install "axon-gui>=5.7.2"
+          python -m pip install "axon-gui>=5.8.2"
           python -m pip install -e .
       - name: 取 axon 前端产物
         working-directory: examples/basic
@@ -93,7 +94,7 @@ jobs:
       - name: 装 axon-gui 与依赖
         run: |
           python -m pip install --upgrade pip
-          python -m pip install "axon-gui>=5.8.0"
+          python -m pip install "axon-gui>=5.8.2"
           python -m pip install -e .
       - name: 取 axon 前端产物
         working-directory: examples/basic
