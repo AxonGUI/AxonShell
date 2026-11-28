@@ -37,6 +37,12 @@ def record(name: str, ok: bool, detail: str = "") -> None:
     print(f"{'PASS' if ok else 'FAIL'}  {name}" + (f"  {detail}" if detail else ""))
 
 
+def skip(name: str, reason: str) -> None:
+    """记一条 SKIP：不计失败，但显式说明为什么没测（避免「没跑」被当成「通过」）。"""
+    RESULTS.append({"name": name, "ok": True, "detail": f"SKIP: {reason}", "skipped": True})
+    print(f"SKIP  {name}  {reason}")
+
+
 class Harness:
     def __init__(self, app, window: AxonShellWindow):
         self.app = app
@@ -378,6 +384,11 @@ class Harness:
 
     # ---- 7) 原生菜单：能建出 Qt 菜单（最后一步，之后不再依赖 JS 回调） ----
     def step_native(self) -> None:
+        # 原生菜单（GetSystemMenu / TrackPopupMenu）只有 Windows 实现；
+        # 在 macOS/Linux 上这条本来就不该是绿的，所以显式跳过而不是让它 FAIL。
+        if os.environ.get("AXON_SKIP_NATIVE_MENU") == "1" or sys.platform != "win32":
+            skip("menu/native:popup", "原生菜单只有 Windows 实现")
+            return self.finish()
         self.push(
             "window.AxonShell.menu.native({id: 'verify', items: "
             "[{id: 'na', label: 'A'}, {kind: 'separator'}, {id: 'nb', label: 'B'}]})"

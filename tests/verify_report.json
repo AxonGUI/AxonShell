@@ -1,5 +1,5 @@
 {
-  "when": "2026-11-26 02:08:27",
+  "when": "2026-11-28 15:11:45",
   "results": [
     {
       "name": "boot/connected",
@@ -104,7 +104,8 @@
     {
       "name": "menu/native:popup",
       "ok": true,
-      "detail": "requestId=menu-1 items=['na', 'nb']"
+      "detail": "SKIP: 原生菜单只有 Windows 实现",
+      "skipped": true
     }
   ]
 }
